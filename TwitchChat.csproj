@@ -1,0 +1,129 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{4A495F9E-EDA6-4A49-B336-C0DFA28C86FB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TwitchChat</RootNamespace>
+    <AssemblyName>TwitchChat</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\Mods\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Microsoft.Xna.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Game, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Microsoft.Xna.Framework.Game.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Graphics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Microsoft.Xna.Framework.Graphics.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Xact, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Microsoft.Xna.Framework.Xact.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="tMLold">
+      <HintPath>D:\Programs\Steam\SteamApps\common\Terraria\tMLold.exe</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Commands\TwitchCommand.cs" />
+    <Compile Include="IRCClient\IrcClient.cs" />
+    <Compile Include="IRCClient\RoomStateBadge.cs" />
+    <Compile Include="IRCClient\TwitchBadge.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Razorwing.Framework\Configuration\Bindable.cs" />
+    <Compile Include="Razorwing.Framework\Configuration\BindableBool.cs" />
+    <Compile Include="Razorwing.Framework\Configuration\BindableDouble.cs" />
+    <Compile Include="Razorwing.Framework\Configuration\BindableFloat.cs" />
+    <Compile Include="Razorwing.Framework\Configuration\BindableInt.cs" />
+    <Compile Include="Razorwing.Framework\Configuration\BindableLong.cs" />
+    <Compile Include="Razorwing.Framework\Configuration\BindableNumber.cs" />
+    <Compile Include="Razorwing.Framework\Configuration\ConfigManager.cs" />
+    <Compile Include="Razorwing.Framework\Configuration\IBindable.cs" />
+    <Compile Include="Razorwing.Framework\Configuration\IParseable.cs" />
+    <Compile Include="Razorwing.Framework\Configuration\NonNullableBindable.cs" />
+    <Compile Include="Razorwing.Framework\Extensions\ExceptionExtensions.cs" />
+    <Compile Include="Razorwing.Framework\Extensions\ExtensionMethods.cs" />
+    <Compile Include="Razorwing.Framework\Extensions\IEnumerableExtensions.cs" />
+    <Compile Include="Razorwing.Framework\Extensions\StringExtensions.cs" />
+    <Compile Include="Razorwing.Framework\Extensions\TypeExtensions.cs" />
+    <Compile Include="Razorwing.Framework\IUpdateable.cs" />
+    <Compile Include="Razorwing.Framework\Lists\LazyList.cs" />
+    <Compile Include="Razorwing.Framework\Lists\SortedList.cs" />
+    <Compile Include="Razorwing.Framework\Lists\WeakList.cs" />
+    <Compile Include="Razorwing.Framework\Logging\Logger.cs" />
+    <Compile Include="Razorwing.Framework\MathUtils\EasingTypes.cs" />
+    <Compile Include="Razorwing.Framework\MathUtils\Interpolation.cs" />
+    <Compile Include="Razorwing.Framework\MathUtils\Precision.cs" />
+    <Compile Include="Razorwing.Framework\MathUtils\RNG.cs" />
+    <Compile Include="Razorwing.Framework\Online\API\OAuthToken.cs" />
+    <Compile Include="Razorwing.Framework\Platform\DesktopStorage.cs" />
+    <Compile Include="Razorwing.Framework\Platform\FileSafety.cs" />
+    <Compile Include="Razorwing.Framework\Platform\Storage.cs" />
+    <Compile Include="Razorwing.Framework\Platform\WindowsStorage.cs" />
+    <Compile Include="Razorwing.Framework\Treading\Scheduler.cs" />
+    <Compile Include="Razorwing.Framework\Timings\FramedClock.cs" />
+    <Compile Include="Razorwing.Framework\Timings\FrameTimeInfo.cs" />
+    <Compile Include="Razorwing.Framework\Timings\IAdjustableClock.cs" />
+    <Compile Include="Razorwing.Framework\Timings\IClock.cs" />
+    <Compile Include="Razorwing.Framework\Timings\IFrameBasedClock.cs" />
+    <Compile Include="Razorwing.Framework\Timings\StopwatchClock.cs" />
+    <Compile Include="TwitchChat.cs" />
+    <Compile Include="TwitchConfig.cs" />
+    <Compile Include="TwitchWorld.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>"D:\Programs\Steam\steamapps\common\Terraria\tModLoaderServerold.exe" -build "$(ProjectDir)\" -eac "$(TargetPath)"</PostBuildEvent>
+  </PropertyGroup>
+</Project>

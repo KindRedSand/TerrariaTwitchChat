@@ -1,0 +1,11 @@
+author = KindredTheFox
+version = 0.0.1
+languageVersion = 6
+displayName = Twitch Chat Integrations for tML 0.10.1.5
+homepage = https://discord.gg/xb7MxHu
+hideCode = true
+side = Client
+hideResources = true
+includeSource = false
+buildIgnore = *.csproj, *.user, obj\*, bin\*, .vs\*, Properties\*
+includePDB = true

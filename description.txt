@@ -1,0 +1,31 @@
+This mod print text from stream in game chat
+
+After you install this mod enter any world and type 
+[c/98f6ef:/t settings] and fill config fields. 
+Wait some time until OS ask you how to open .cfg file and use any text editor to edit fields
+Or go to [c/98f6ef:Documents/My Games/Terraria/ModLoader/TwitchChat/Twitch.cfg] and open it manually
+
+[c/98f6ef:Channel] -> stream channel name starting with [c/98f6ef:#] and should be in LOWER CASE!
+Feel free just copy it from url:
+www.twitch.tv/[c/98f6ef:kindredthefox]
+
+[c/98f6ef:Username] -> Your username in twitch in lower case
+
+[c/98f6ef:OAToken] -> Your "password" what allow you enter the chat. Never paste here your own password
+Use only token what you get from https://twitchapps.com/tmi/ 
+It should starts with [c/98f6ef:oauth:] and 30 symbols.
+
+After this save all changes and type
+[c/98f6ef:/t reload] to apply changes and force mod to reconnect
+
+
+You can also send messages in chat using
+[c/98f6ef:/t m Your Text Here]
+
+0.0.2 Update:
+
+Added [c/98f6ef:ShowAllIrc] flag for debugging. Just print all unhandled messages from server in chat.
+Minor perfomance enchancesment
+
+Report any bugs for me in discord [c/d6791a:KindRed-Sand#2340]
+

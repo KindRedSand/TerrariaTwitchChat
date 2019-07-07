@@ -34,6 +34,7 @@ namespace TwitchChat
             "nightbot",
             "moobot",
             "starbottv",
+            "starbotttv",
             "stayhydratedbot",
             "stay_hydrated_bot",
         };

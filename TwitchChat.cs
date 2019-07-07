@@ -1,5 +1,4 @@
 ﻿using TwitchChat.Razorwing.Framework.Platform;
-using TwitchChat.Razorwing.Framework.Platform.Windows;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +25,18 @@ namespace TwitchChat
         private bool InRestoringState = false;
 
         public bool ShowDebug = false;
+        public bool IgnoreCommands = false;
+        public string CommandPrefix = "!";
+        public string Username = "";
+
+        public readonly string[] KnownBots = new string[]
+        {
+            "nightbot",
+            "moobot",
+            "starbottv",
+            "stayhydratedbot",
+            "stay_hydrated_bot",
+        };
 
         public TwitchChat()
         {
@@ -56,6 +67,9 @@ namespace TwitchChat
             Irc = new IrcClient(); // This client used in my twitch bot so class know all info about twitch irc server so ve don't need to provide what info here 
 
             ShowDebug = Config.Get<bool>(TwitchCfg.ShowAllIrc);
+            IgnoreCommands = Config.Get<bool>(TwitchCfg.IgnoreCommands);
+            CommandPrefix = Config.Get<string>(TwitchCfg.IgnoreCommandPrefix);
+            Username = Config.Get<string>(TwitchCfg.Username);
 
             if (ShowDebug)
             {
@@ -106,8 +120,21 @@ namespace TwitchChat
 
             EventHandler<ChannelMessageEventArgs> p2 = (s, e) =>
                {
-               if (Main.ActiveWorldFileData != null)
+                   if(!Main.gameMenu)
                    {
+                       //If we ignore commands, we also want ignore bots messages
+                       if (IgnoreCommands)
+                       {
+                           if (e.Message.StartsWith(CommandPrefix))
+                               return;
+                           //In case you selfbotting, we ignore your own messages 
+                           if (e.From == Username)
+                               return;
+                           //if message was sended by known bot, we ignore it
+                           if (KnownBots.Contains(e.From))
+                               return;
+                       }
+                       
                        string prefix = "";
                        if (e.Badge.sub)
                        {
@@ -118,8 +145,8 @@ namespace TwitchChat
                            prefix += $"[i:{ItemID.Arkhalis}]";
                        }
 
-                    //String format 
-                    Main.NewText($@"{prefix} [c/{TwitchColor}:{e.Badge.DisplayName}]: {e.Message}");
+                       //String format 
+                       Main.NewText($@"{prefix} [c/{TwitchColor}:{e.Badge.DisplayName}]: {e.Message}");
                    }
                };
             Irc.ChannelMessage += p2;

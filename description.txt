@@ -15,12 +15,20 @@ www.twitch.tv/[c/98f6ef:kindredthefox]
 Use only token what you get from https://twitchapps.com/tmi/ 
 It should starts with [c/98f6ef:oauth:] and 30 symbols.
 
+[c/98f6ef:IgnoreCommands] Does mod should ignore commands (messages starting from [c/98f6ef:!] for example)
+Also enables ignoring bot messages and your own messages (in case selfbotting).
+Enable it after you enshure what you see meessages from twitch.
+
 After this save all changes and type
 [c/98f6ef:/t reload] to apply changes and force mod to reconnect
 
 
 You can also send messages in chat using
 [c/98f6ef:/t m Your Text Here]
+
+0.0.3 Update:
+
+Added flag [c/98f6ef:IgnoreCommands] what allow ignore bot spams
 
 0.0.2 Update:
 

@@ -29,10 +29,14 @@ namespace TwitchChat.Commands
                 {
                     if (mod.Config.Get<string>(TwitchCfg.OAToken) != "https://twitchapps.com/tmi/"
                         && mod.Config.Get<string>(TwitchCfg.Username) != "missingno")
-                            mod.Irc.Connect();
+                    {
+                        mod.Irc.Username = mod.Config.Get<string>(TwitchCfg.Username);
+                        mod.Irc.AuthToken = mod.Config.Get<string>(TwitchCfg.OAToken);
+                        mod.Irc.Connect();
+                    }  
                     else
                     {
-                        caller.Reply("You missed username or token in settings. Type /t s to open settings file and /twitch r to reload mod");
+                        caller.Reply("You missed username or token in settings. Type /t s to open settings file and /t r to reload mod");
                     }
                 }else
                 if (args[0].ToLower() == "disconnect" || args[0].ToLower() == "dc")

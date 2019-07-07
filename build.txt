@@ -1,5 +1,5 @@
 author = KindredTheFox
-version = 0.0.2
+version = 0.0.3
 languageVersion = 6
 displayName = Twitch Chat Integrations for tML 0.10.1.5
 homepage = https://discord.gg/xb7MxHu

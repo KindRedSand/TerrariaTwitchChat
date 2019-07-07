@@ -19,6 +19,8 @@ namespace TwitchChat
             Set(TwitchCfg.Username, "missingno");
             Set(TwitchCfg.OAToken, "https://twitchapps.com/tmi/");
             Set(TwitchCfg.ShowAllIrc, false);
+            Set(TwitchCfg.IgnoreCommands, false);
+            Set(TwitchCfg.IgnoreCommandPrefix, "!");
         }
 
         public TwitchConfig(Storage storage)
@@ -34,5 +36,7 @@ namespace TwitchChat
         Username,
         AutoConnet,
         ShowAllIrc,
+        IgnoreCommands,
+        IgnoreCommandPrefix,
     }
 }

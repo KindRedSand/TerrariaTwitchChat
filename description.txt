@@ -31,7 +31,9 @@ You can also send messages in chat using
 0.1.0 Update:
 
 Added async emoticon downloading in runtime
-
+  .1 Potential fix for multi loading emotes newer got loaded
+  Also added /te fs for clearing failsafe cache (if client get exception while loading emote, it add this emote to failsafe list and prevent trying to load any emote from this list)
+  /te c clear texture cache.
 
 0.0.3.1 Update:
 

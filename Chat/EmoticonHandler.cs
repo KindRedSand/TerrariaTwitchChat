@@ -46,6 +46,7 @@ namespace TwitchChat.Chat
 
             try
             {
+                lock (web)
                 using (MemoryStream ms = new MemoryStream())
                 using (var str = web.OpenRead($@"http://static-cdn.jtvnw.net/emoticons/v1/{id}/2.0"))
                 {

@@ -10,6 +10,9 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using TwitchChat.IRCClient;
 using TwitchChat.Razorwing.Framework.Configuration;
+using Terraria.UI.Chat;
+using TwitchChat.Razorwing.Framework.Logging;
+using TwitchChat.Chat;
 
 namespace TwitchChat
 {
@@ -20,6 +23,8 @@ namespace TwitchChat
         internal IrcClient Irc { get; set; }
 
         public Bindable<string> LastStatus = new Bindable<string>($"[c/{TwitchColor}: Client not connected]");
+
+        private SEmoteComparrer comparrer = new SEmoteComparrer();
 
         public const string TwitchColor = "942adf";
         private bool InRestoringState = false;
@@ -42,6 +47,7 @@ namespace TwitchChat
         public TwitchChat()
         {
             LastStatus.ValueChanged += LastStatus_ValueChanged;
+            Terraria.UI.Chat.ChatManager.Register<EmoticonHandler>(new string[] { "emote", "e" });
         }
 
         private void LastStatus_ValueChanged(string newValue)
@@ -62,10 +68,12 @@ namespace TwitchChat
                 TPath = $@"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\My Games\Terraria\ModLoader\",
             });
 
+            //Logger.Storage = Storage;
+
             // Just to create file
             Config.Save();
 
-            Irc = new IrcClient(); // This client used in my twitch bot so class know all info about twitch irc server so ve don't need to provide what info here 
+            Irc = new IrcClient(); // This client used in my twitch bot so class know all info about twitch irc server so we don't need to provide what info here 
 
             ShowDebug = Config.Get<bool>(TwitchCfg.ShowAllIrc);
             IgnoreCommands = Config.Get<bool>(TwitchCfg.IgnoreCommands);
@@ -74,6 +82,7 @@ namespace TwitchChat
 
             if (ShowDebug)
             {
+                //In uknown reason for me, tModLoader refuse to use () => {}; delegate in +=
                 EventHandler<string> p3 = (s, m) =>
                    {
                        try
@@ -98,8 +107,6 @@ namespace TwitchChat
                    Irc.JoinChannel(Config.Get<string>(TwitchCfg.Channel));
 
                    InRestoringState = false;
-                //Thread.Sleep(500);
-                //irc.JoinChannel(ChatBotChannel);
             };
             Irc.OnConnect += p;
 
@@ -135,7 +142,49 @@ namespace TwitchChat
                            if (KnownBots.Contains(e.From))
                                return;
                        }
+                       var result = "";
+
+                       List<SEmote> parsed = new List<SEmote>();
+
+                       foreach(var it in e.Badge.emotes)
+                       {
+                           if (it == string.Empty)
+                               break;
+                           var pair = it.Split(':');
+                           var ind = pair[1].Split(',');
+                           foreach(var index in ind)
+                           {
+                               var ipair = index.Split('-');
+                               parsed.Add(new SEmote(ipair[0], ipair[1], pair[0]));
+                           }
+                       }
+
+                       //Note, what concat += create NEW string each time. 
+                       //Need find more fast way to do this for minimal IRC client idle 
+                       if (parsed.Count != 0)
+                       {
+                           parsed.Sort(comparrer);
+                           var str = e.Message;
+                           int indx = 0, i = 0;
+                           for(; i < str.Length && indx < parsed.Count;)
+                           {
+                               if(parsed[indx].Start == i)
+                               {
+                                   result += $"[emote:{parsed[indx].Emote}]";
+                                   i = parsed[indx].End + 1;
+                                   indx++;
+                                   continue;
+                               }
+                               result += str[i];
+                               i++;
+                           }
+                           if(i != str.Length)
+                            result += str.Substring(i);
+                       }
+                       else
+                           result = e.Message;
                        
+
                        string prefix = "";
                        if (e.Badge.sub)
                        {
@@ -145,9 +194,9 @@ namespace TwitchChat
                        {
                            prefix += $"[i:{ItemID.Arkhalis}]";
                        }
-
+                       
                        //String format 
-                       Main.NewText($@"{prefix} [c/{TwitchColor}:{e.Badge.DisplayName}]: {e.Message}");
+                       Main.NewText($@"{prefix} [c/{TwitchColor}:{e.Badge.DisplayName}]: {result}");
                    }
                };
             Irc.ChannelMessage += p2;
@@ -175,6 +224,37 @@ namespace TwitchChat
             Storage = null;
         }
 
+        private class SEmoteComparrer : IComparer<SEmote>
+        {
+            public int Compare(SEmote x, SEmote y)
+            {
+                return x.Start.CompareTo(y.Start);
+            }
+        }
 
+        private class SEmote 
+        {
+            public int Start;
+            public int End;
+            public int Emote;
+            public SEmote(string s, string e, string em)
+            {
+                Start = int.Parse(s);
+                End = int.Parse(e);
+                Emote = int.Parse(em);
+            }
+
+            public SEmote(int s, int e, int em)
+            {
+                Start = s;
+                End = e;
+                Emote = em;
+            }
+
+            public int CompareTo(object obj)
+            {
+                return Start.CompareTo(obj);
+            }
+        }
     }
 }

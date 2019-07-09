@@ -1,9 +1,11 @@
 This mod print text from stream in game chat
 
+Now with emoticons
+
 After you install this mod enter any world and type 
 [c/98f6ef:/t settings] and fill config fields. 
 Wait some time until OS ask you how to open .cfg file and use any text editor to edit fields
-Or go to [c/98f6ef:Documents/My Games/Terraria/ModLoader/TwitchChat/Twitch.cfg] and open it manually
+Or go to Documents/My Games/Terraria/ModLoader/TwitchChat/Twitch.cfg and open it manually
 
 [c/98f6ef:Channel] -> stream channel name starting with [c/98f6ef:#] and should be in LOWER CASE!
 Feel free just copy it from url:
@@ -26,9 +28,15 @@ After this save all changes and type
 You can also send messages in chat using
 [c/98f6ef:/t m Your Text Here]
 
-0.0.3 Update:
+0.1.0 Update:
+
+Added async emoticon downloading in runtime
+
+
+0.0.3.1 Update:
 
 Added flag [c/98f6ef:IgnoreCommands] what allow ignore bot spams
+ .1 Changed home page to tcf instead discord
 
 0.0.2 Update:
 

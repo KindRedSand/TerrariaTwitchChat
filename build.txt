@@ -1,8 +1,8 @@
 author = KindredTheFox
-version = 0.0.3
+version = 0.1.0
 languageVersion = 6
 displayName = Twitch Chat Integrations for tML 0.10.1.5
-homepage = https://discord.gg/xb7MxHu
+homepage = https://forums.terraria.org/index.php?threads/twitch-chat-integration.81093/
 hideCode = true
 side = Client
 hideResources = true

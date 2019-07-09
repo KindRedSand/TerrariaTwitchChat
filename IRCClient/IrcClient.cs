@@ -337,11 +337,13 @@ namespace TwitchChat.IRCClient
         private Logger log = Logger.GetLogger(LoggingTarget.Network);
         private void ParseBagedData(string data)
         {
+            //log.Add(data);
+
             // split the data into parts
             string[] ircData = data.Split(' ');
 
             var ircCommand = ircData[2];
-            var tagString = ircData[0].Substring(8);
+            var tagString = ircData[0].Substring(1);
             var tags = tagString.Split(';');
 
             if (ircCommand == "ROOMSTATE")
@@ -378,10 +380,6 @@ namespace TwitchChat.IRCClient
                             break;
                     }
                 }
-                //if (ircData[3] == BotEntry.Channel)
-                //{
-                //    CurrentChannelBadge = badge;
-                //}
                 RoomStateChanged?.Invoke(data, badge);
             }else
             {
@@ -405,6 +403,10 @@ namespace TwitchChat.IRCClient
                         case "mod":
                             if (pair[1] == "1")
                                 badge.mod = true;
+                            break;
+                        case "emotes":
+                            badge.emotes = pair[1].Split('/');
+
                             break;
                     }
                 }
@@ -443,7 +445,6 @@ namespace TwitchChat.IRCClient
                 }
 
             }
-            //Logger.Log($"{ircCommand} {{{JoinArray(ircData, indx + 1)}}}", LoggingTarget.Database, LogLevel.Verbose);
 
             // re-act according to the IRC Commands
             switch (ircCommand)

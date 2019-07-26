@@ -1,5 +1,5 @@
-﻿using TwitchChat.Razorwing.Framework.Configuration;
-using TwitchChat.Razorwing.Framework.Platform;
+﻿using Razorwing.Framework.Configuration;
+using Razorwing.Framework.Platform;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace TwitchChat
 {
-    public class TwitchConfig : ConfigManager<TwitchCfg>
+    public class TwitchConfig : IniConfigManager<TwitchCfg>
     {
-        protected override string Filename => @"Twitch.cfg";
+        protected override string Filename => @"Twitch.ini";
 
         protected override void InitialiseDefaults()
         {
@@ -21,6 +21,7 @@ namespace TwitchChat
             Set(TwitchCfg.ShowAllIrc, false);
             Set(TwitchCfg.IgnoreCommands, false);
             Set(TwitchCfg.IgnoreCommandPrefix, "!");
+            Set(TwitchCfg.EnableFun, false);
         }
 
         public TwitchConfig(Storage storage)
@@ -38,5 +39,6 @@ namespace TwitchChat
         ShowAllIrc,
         IgnoreCommands,
         IgnoreCommandPrefix,
+        EnableFun,
     }
 }

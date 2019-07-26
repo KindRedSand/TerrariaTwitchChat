@@ -1,11 +1,17 @@
 This mod print text from stream in game chat
 
-Now with emoticons
+Now with cached emoticons
+Note, mod no more only client side and marked as NoSync what mean mod still not disabling when joining server and also can be loaded at server without requiring clients haave what mod
+Server side Fun features can be synced if mod enabled in both client and server 
+Nothing happens on server if [c/98f6ef:EnableFun] = false
 
 After you install this mod enter any world and type 
-[c/98f6ef:/t settings] and fill config fields. 
-Wait some time until OS ask you how to open .cfg file and use any text editor to edit fields
-Or go to Documents/My Games/Terraria/ModLoader/TwitchChat/Twitch.cfg and open it manually
+Windows only:
+  [c/98f6ef:/t settings] to open settings file or [c/98f6ef:/t open] to open config folder. 
+  Wait some time until OS ask you how to open .cfg file and use any text editor to edit fields
+
+Linux/MacOS:
+Or go to /ModLoader/Mods folder (In [c/d6791a:Mods] menu click [c/d6791a:Open Mods Folder]) Cache/Twitch/Twitch.ini and open it manually
 
 [c/98f6ef:Channel] -> stream channel name starting with [c/98f6ef:#] and should be in LOWER CASE!
 Feel free just copy it from url:
@@ -21,12 +27,28 @@ It should starts with [c/98f6ef:oauth:] and 30 symbols.
 Also enables ignoring bot messages and your own messages (in case selfbotting).
 Enable it after you enshure what you see meessages from twitch.
 
+[c/98f6ef:EnableFun] Experimental implementation of [c/98f6ef:Twitch Plays Terraria]. 
+Still lack of content, but if you want create a content pack, dm me in discord [c/d6791a:KindRed-Sand#2340]
+
 After this save all changes and type
 [c/98f6ef:/t reload] to apply changes and force mod to reconnect
 
+All emoticons what your game was loaded, now stores on your disc at 
+/ModLoader/Mods/Cache/Twitch/emoticons
+
+Also, each emote loaded from twitch chat can be reused using \[e:EmoteAlias] tag
 
 You can also send messages in chat using
 [c/98f6ef:/t m Your Text Here]
+
+0.2.0 Update:
+
+Changed emoticons delivery system, changed storage folder to 
+  /ModLoader/Mods/Cache/Twitch
+Config file will be moved automatically at new place
+Added Twitch Plays Terraria experimental module what can be enabled using
+[c/98f6ef:EnableFun] = True
+
 
 0.1.0 Update:
 

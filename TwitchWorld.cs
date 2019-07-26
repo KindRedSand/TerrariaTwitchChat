@@ -5,11 +5,29 @@ using System.Text;
 using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
+using Terraria.ModLoader.IO;
 
 namespace TwitchChat
 {
     public class TwitchWorld : ModWorld
     {
+
+        public bool firstNight = false;
+
+        public override void Load(TagCompound tag)
+        {
+            firstNight = tag.ContainsKey("firstNigh") ? (bool)tag["firstNight"] : false;
+            firstNight = true;
+        }
+
+        public override TagCompound Save()
+        {
+            return new TagCompound()
+            {
+                ["firstNight"] = firstNight,
+            };
+        }
+
 
         bool statePrinted = false;
         public override void Initialize()
@@ -24,7 +42,7 @@ namespace TwitchChat
             base.PostUpdate();
             if (!statePrinted)
             {
-                Main.NewText(((TwitchChat)mod).LastStatus);
+                TwitchChat.Text(((TwitchChat)mod).LastStatus);
                 statePrinted = true;
             }
         }

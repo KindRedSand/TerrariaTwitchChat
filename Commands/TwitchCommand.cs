@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
-using TwitchChat.Razorwing.Framework.Extensions;
+using Razorwing.Framework.Extensions;
 
 namespace TwitchChat.Commands
 {
@@ -17,7 +17,7 @@ namespace TwitchChat.Commands
 
         public override string Description => "Universal command to handle mod operations. Reload -> force mod reloading, used if mod get bad state or settings is changed, Settings -> open settings file";
 
-        public override string Usage => "/t connect (c) / disconnect (dc) / reload (r) / settings (s) / message (msg, m)";
+        public override string Usage => "/t connect (c) / disconnect (dc) / reload (r) / open (o) / settings (s) / message (msg, m)";
 
         private new TwitchChat mod => (TwitchChat)((ModCommand)this).mod;
 
@@ -51,7 +51,12 @@ namespace TwitchChat.Commands
                 }else
                 if (args[0].ToLower() == "settings" || args[0].ToLower() == "s")
                 {
-                    mod.Storage.OpenInNativeExplorer("Twitch.cfg");
+                    mod.Storage.OpenFileExternally(mod.Storage.GetFullPath("Twitch.ini"));
+                }
+                else
+                if (args[0].ToLower() == "open" || args[0].ToLower() == "o")
+                {
+                    mod.Storage.OpenInNativeExplorer();
                 }else
                 if(args[0].ToLower() == "message" || args[0].ToLower() == "msg" || args[0].ToLower() == "m")
                 {
@@ -60,9 +65,9 @@ namespace TwitchChat.Commands
                         a.Add(args[i]);
                     string text = string.Join(" ", a);
 
-                    mod.Irc.SendMessage(mod.Config.Get<string>(TwitchCfg.Channel), text);
+                    TwitchChat.Send(text);
 
-                    caller.Reply($"[c/{TwitchChat.TwitchColor}:<-- To Twitch:] " + text);
+                    caller.Reply($"[c/{TwitchChat.TwitchColor}:<-- To Twitch:] {text}");
 
                 }else
                 {

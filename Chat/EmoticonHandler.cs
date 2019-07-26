@@ -16,15 +16,16 @@ namespace TwitchChat.Chat
     public class EmoticonHandler : ITagHandler
     {
         internal static Dictionary<int, Texture2D> cache = new Dictionary<int, Texture2D>();
+        internal static EmoticonsStore store; 
         internal static List<int> inProggres = new List<int>();
-        internal static WebClient web = new WebClient();
+        //internal static WebClient web = new WebClient();
         internal static int[] failsafe = { 0 };
 
 
         static EmoticonHandler()
         {
-            web.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
-            web.Headers.Add("accept", "image/png");
+            //web.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+            //web.Headers.Add("accept", "image/png");
         }
 
         public EmoticonHandler()
@@ -46,41 +47,55 @@ namespace TwitchChat.Chat
 
             try
             {
-                lock (web)
-                using (MemoryStream ms = new MemoryStream())
-                using (var str = web.OpenRead($@"http://static-cdn.jtvnw.net/emoticons/v1/{id}/2.0"))
+                //TwitchChat m = TwitchChat.Instance;
+
+                var t = store.Get(id);
+
+                if(t != null)
                 {
-                    //If result is different what png image we can't load it as Texture2D 
-                    if (web.ResponseHeaders.Get("content-type") != "image/png")
-                    {
-                        inProggres.Remove(id);
-                        return;
-                    }
-
-                    //Texture2D.FromStream requre stream with available seek operation, so we just copy all data (until EndOfStream) in to MemoryStream
-                    str.CopyTo(ms);
-
-                    Texture2D txt = Texture2D.FromStream(Main.graphics.GraphicsDevice, ms);
-
                     lock(cache)
-                    {
-                        cache.Add(id, txt);
-                    }
+                        cache.Add(id, t);
                 }
+
+                //lock (web)
+                //using (MemoryStream ms = new MemoryStream())
+                //using (var str = web.OpenRead($@"http://static-cdn.jtvnw.net/emoticons/v1/{id}/2.0"))
+                //{
+                //    //If result is different what png image we can't load it as Texture2D 
+                //    if (web.ResponseHeaders.Get("content-type") != "image/png")
+                //    {
+                //        inProggres.Remove(id);
+                //        return;
+                //    }
+
+                //    //Texture2D.FromStream requre stream with available seek operation, so we just copy all data (until EndOfStream) in to MemoryStream
+                //    str.CopyTo(ms);
+
+                //    Texture2D txt = Texture2D.FromStream(Main.graphics.GraphicsDevice, ms);
+
+                //    lock(cache)
+                //    {
+                //        cache.Add(id, txt);
+                //    }
+                //}
+
+
 
                 inProggres.Remove(id);
 
             }catch(Exception e)
             {
+                inProggres.Remove(id);
+                if (e is ArgumentException)
+                    return;
                 var list = failsafe.ToList();
                 list.Add(id);
                 failsafe = list.ToArray();
-                inProggres.Remove(id);
             }
 
         }
 
-        private Dictionary<string, int> convertingEmotes = new Dictionary<string, int>()
+        public static Dictionary<string, int> convertingEmotes = new Dictionary<string, int>()
         {
             ["LUL"] = 425618,
             ["CoolStoryBob"] = 123171,
@@ -105,9 +120,15 @@ namespace TwitchChat.Chat
         {
             int i;
             if (int.TryParse(text, out i))
-                return new EmoticonSnippet(i);
+                return new EmoticonSnippet(i)
+                {
+                    CheckForHover = true,
+                };
             else if (convertingEmotes.ContainsKey(text))
-                return new EmoticonSnippet(convertingEmotes[text]);
+                return new EmoticonSnippet(convertingEmotes[text])
+                {
+                    CheckForHover = true,
+                };
             return new TextSnippet(text);
         }
 
@@ -120,6 +141,24 @@ namespace TwitchChat.Chat
                 this.id = id;
             }
 
+            public override void OnHover()
+            {
+                string w = "";
+                foreach(var p in convertingEmotes)
+                {
+                    if(p.Value == id)
+                    {
+                        w = p.Key;
+                        break;
+                    }
+                }
+
+                if(w != "")
+                    Main.instance.MouseText(w);
+                else
+                    Main.instance.MouseText($"{id}");
+            }
+
             public override bool UniqueDraw(bool justCheckingString, out Vector2 size, SpriteBatch spriteBatch, Vector2 position = default(Vector2), Color color = default(Color), float scale = 1)
             {
                 if (failsafe.Contains(id))
@@ -128,13 +167,12 @@ namespace TwitchChat.Chat
                     return false;
                 }
 
-                if(!cache.ContainsKey(id))
+                if (!cache.ContainsKey(id))
                 {
-                    if(!inProggres.Contains(id))
+                    if (!inProggres.Contains(id))
                     {
                         //In case not blocking game thread while we download image
                         Task.Run(() => { LoadTexture(id); });
-                        //LoadTexture(id);
                     }
                     return base.UniqueDraw(justCheckingString, out size, spriteBatch, position, color, scale);
                 }
@@ -142,9 +180,9 @@ namespace TwitchChat.Chat
                 try
                 {
                     if (color != null && color.A != 0)
-                        spriteBatch.Draw(cache[id], new Rectangle((int)position.X, (int)position.Y, 28, 28), color);
+                        spriteBatch.Draw(cache[id], new Rectangle((int)position.X, (int)position.Y, (int)(cache[id].Width/2.5), (int)(cache[id].Height/2.5)), color);
 
-                    size = new Vector2(28, 28);
+                    size = new Vector2((int)(cache[id].Width / 2.5), (int)(cache[id].Height / 2.5));
                     return true;
                 }catch(Exception e)
                 {

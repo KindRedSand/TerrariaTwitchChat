@@ -31,7 +31,7 @@ namespace TwitchChat.Commands
                 else if (args[0] == "cache" || args[0] == "c")
                 {
                     EmoticonHandler.cache.Clear();
-                    caller.Reply("Cache cleared. Expect lag spikes!");
+                    caller.Reply("Since now we use store, clearing cache only clear texture references.");
                 }
                 else
                     caller.Reply(Usage);

@@ -1,4 +1,4 @@
-﻿using TwitchChat.Razorwing.Framework.Logging;
+﻿using Razorwing.Framework.Logging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -16,9 +16,9 @@ namespace TwitchChat.IRCClient
     /// IRC client writed specialy for using Twitch API.
     /// It's include whisperings (WHISPER) and badges parsing.
     /// </summary>
-    public class IrcClient : IDisposable
+    internal class IrcClient : IDisposable
     {
-        #region Priperties and fields
+        #region Properties and fields
         /// <summary>
         /// The hostname of server. Couse we want use it for twitch so Twitch IRC server was setted for default.
         /// </summary>
@@ -45,6 +45,7 @@ namespace TwitchChat.IRCClient
         /// Default port used for IRC.
         /// </summary>
         private int port = 6667;
+
         /// <summary>
         /// Set a port for server connection.
         /// </summary>
@@ -54,7 +55,6 @@ namespace TwitchChat.IRCClient
             {
                 return port;
             }
-
             set
             {
                 if (port == value)
@@ -63,13 +63,11 @@ namespace TwitchChat.IRCClient
             }
         }
 
-        /// <summary>
-        /// Password for IRC server.
-        /// </summary>
+
         private string serverPassword = string.Empty;
         /// <summary>
         /// By default it is server password, but in Twitch case it is OAuth token genereted by twitchapps. You can get it using https://twitchapps.com/tmi/ service.
-        /// For some puposes getting a password from there is not allowed.
+        /// For some purposes getting a password from there is not allowed.
         /// </summary>
         public string AuthToken { set { if (serverPassword == value) return; serverPassword = value; } }
 
@@ -79,9 +77,6 @@ namespace TwitchChat.IRCClient
         /// </summary>
         public string Username { get { return nick; } set { if (nick == value) return; nick = value; } }
 
-        /// <summary>
-        /// Do we use a SSL connection? True by default.
-        /// </summary>
         private bool sslEnabled = true;
         /// <summary>
         /// Do we use a SSL connection? True by default.
@@ -320,13 +315,12 @@ namespace TwitchChat.IRCClient
                         ProcessData(inputLine, new Badge());
                     else
                         ParseBagedData(inputLine);
-                    //if (_consoleOutput) Console.WriteLine(inputLine);
                 }
                 catch (Exception ex)
                 {
                     ExceptionThrown?.Invoke(this, new ExceptionEventArgs(ex));
                 }
-            }//end while 
+            }
             ConnectionClosed?.Invoke(this, new EventArgs());
         }
 
@@ -334,11 +328,9 @@ namespace TwitchChat.IRCClient
 
         public RoomStateBadge CurrentChannelBadge;
 
-        private Logger log = Logger.GetLogger(LoggingTarget.Network);
+        private Logger log = Logger.GetLogger("Irc");
         private void ParseBagedData(string data)
         {
-            //log.Add(data);
-
             // split the data into parts
             string[] ircData = data.Split(' ');
 
@@ -346,6 +338,7 @@ namespace TwitchChat.IRCClient
             var tagString = ircData[0].Substring(1);
             var tags = tagString.Split(';');
 
+            // Actually, we can get 3 different tags compound, but we want to know only about two of them
             if (ircCommand == "ROOMSTATE")
             {
                 tagString = ircData[0].Substring(1);
@@ -436,10 +429,7 @@ namespace TwitchChat.IRCClient
             {
                 if (data.Substring(0, 4) == "PING")
                 {
-                    //Logger.Log($"PING", LoggingTarget.Database);
-                    // Some servers respond like :potato.freenode.net
-                    // And the pong is not valid with the :
-                    //Send("PONG " + ircData[2].Replace(":", string.Empty));
+                    // hardcoded to twitch server 
                     Send("PONG :tmi.twitch.tv");
                     return;
                 }
@@ -461,38 +451,15 @@ namespace TwitchChat.IRCClient
                         {
                             var userList = JoinArray(ircData, 5).Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                         }
-                         
-
-                        //Fire_UpdateUsers(new UpdateUsersEventArgs(channel, userList));
                     }
                     break;
                 case "433":
                     var takenNick = ircData[4];
-
-                    // notify user
-                    //Fire_NickTaken(takenNick);
-
-                    // try alt nick if it's the first time 
-                    //if (takenNick == _altNick)
-                    //{
-                    //    var rand = new Random();
-                    //    var randomNick = "Guest" + rand.Next(0, 9) + rand.Next(0, 9) + rand.Next(0, 9);
-                    //    Send("NICK " + randomNick);
-                    //    Send("USER " + randomNick + " 0 * :" + randomNick);
-                    //    nick = randomNick;
-                    //}
-                    //else
-                    //{
-                    //    Send("NICK " + _altNick);
-                    //    Send("USER " + _altNick + " 0 * :" + _altNick);
-                    //    _nick = _altNick;
-                    //}
                     break;
                 case "JOIN": // someone joined
                     {
-                        var channel = ircData[3];
-                        var user = ircData[1].Substring(1, ircData[1].IndexOf("!", StringComparison.Ordinal) - 1);
-                        //Fire_UserJoined(new UserJoinedEventArgs(channel, user));
+                        var channel = ircData[2];
+                        var user = ircData[0].Substring(1, ircData[1].IndexOf("!", StringComparison.Ordinal) - 1);
                     }
                     break;
                 case "MODE": // MODE was set
@@ -508,7 +475,6 @@ namespace TwitchChat.IRCClient
 
                             var to = ircData[5];
                             var mode = ircData[4];
-                            //Fire_ChannelModeSet(new ModeSetEventArgs(channel, from, to, mode));
                         }
 
                         // TODO: event for userMode's
@@ -545,17 +511,6 @@ namespace TwitchChat.IRCClient
                           PrivateMessage?.Invoke(this, new PrivateMessageEventArgs(from, message));
                         else
                             ChannelMessage?.Invoke(this, new ChannelMessageEventArgs(to, from, message, badge));
-                        //if (_consoleOutput)
-                        {
-                            string prefix = $"";
-                            if (badge.mod)
-                                prefix += "[mod] ";
-                            if (badge.sub)
-                                prefix += "[sub] ";
-                            if (badge.turbo)
-                                prefix += "[turbo] ";
-                            log.Add($@"{prefix}{badge.DisplayName}: {message}", LogLevel.Verbose);
-                        }
                     }
                     break;
                 case "WHISPER":
@@ -565,17 +520,6 @@ namespace TwitchChat.IRCClient
                         var message = JoinArray(ircData, 4);
 
                         WhisperMessage?.Invoke(this, new PrivateMessageEventArgs(from, message));
-                        //if (_consoleOutput)
-                        {
-                            string prefix = $"";
-                            if (badge.mod)
-                                prefix += "[mod] ";
-                            if (badge.sub)
-                                prefix += "[sub] ";
-                            if (badge.turbo)
-                                prefix += "[turbo] ";
-                            log.Add($@"PRIVATE {prefix}{badge.DisplayName}: {message}", LogLevel.Verbose);
-                        }
                     }
                     break;
                 case "PART":

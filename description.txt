@@ -41,14 +41,15 @@ Also, each emote loaded from twitch chat can be reused using \[e:EmoteAlias] tag
 You can also send messages in chat using
 [c/98f6ef:/t m Your Text Here]
 
-0.2.0 Update:
+0.2.1 Update:
 
 Changed emoticons delivery system, changed storage folder to 
   /ModLoader/Mods/Cache/Twitch
 Config file will be moved automatically at new place
 Added Twitch Plays Terraria experimental module what can be enabled using
 [c/98f6ef:EnableFun] = True
-
+   .1:
+   Potential fix for crashing at mod initialization state (mod fails to move config file) 
 
 0.1.0 Update:
 

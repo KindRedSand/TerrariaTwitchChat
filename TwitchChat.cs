@@ -75,12 +75,6 @@ namespace TwitchChat
         static TwitchChat()
         {
             Path = $@"{ModLoader.ModPath}\Cache\Twitch\"; 
-
-            if(System.IO.File.Exists($@"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\My Games\Terraria\ModLoader\TwitchChat\Twitch.cfg"))
-            {
-                System.IO.File.Move($@"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\My Games\Terraria\ModLoader\TwitchChat\Twitch.cfg", 
-                    $@"{Path}Twitch.ini");
-            }
         }
 
         public TwitchChat()
@@ -88,6 +82,20 @@ namespace TwitchChat
             LastStatus.ValueChanged += LastStatus_ValueChanged;
             if (Main.netMode != NetmodeID.Server)
                 Terraria.UI.Chat.ChatManager.Register<EmoticonHandler>(new string[] { "emote", "e" });
+
+            try
+            {
+                if (System.IO.File.Exists($@"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\My Games\Terraria\ModLoader\TwitchChat\Twitch.cfg") &&
+                   !System.IO.File.Exists($@"{Path}Twitch.ini"))
+                {
+                    System.IO.File.Move($@"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\My Games\Terraria\ModLoader\TwitchChat\Twitch.cfg",
+                        $@"{Path}Twitch.ini");
+                }
+            }catch(Exception e)
+            {
+
+            }
+
         }
 
         private void LastStatus_ValueChanged(string m)

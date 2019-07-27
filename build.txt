@@ -7,6 +7,6 @@ hideCode = true
 side = NoSync
 hideResources = true
 includeSource = false
-buildIgnore = *.csproj, *.user, obj\*, bin\*, .vs\*, Properties\*
+buildIgnore = *.csproj, *.user, obj\*, bin\*, .vs\*, Properties\*, packages\*, .git\*
 includePDB = true
 dllReferences = System.Net.Http, Razorwing.Framework, Microsoft.Diagnostics.Runtime

@@ -424,6 +424,8 @@ namespace TwitchChat
                 Irc?.Disconnect();
             Irc?.Dispose();
             Irc = null;
+            Config.Load();
+            Config.Dispose();
             Config = null;
             Storage = null;
             Store.Dispose();

@@ -117,6 +117,8 @@ namespace TwitchChat
             }
         }
 
+        
+
         public static void Post(string m, Color color)
         {
             if (Main.netMode == NetmodeID.Server)
@@ -187,42 +189,73 @@ namespace TwitchChat
             if (ShowDebug)
                 Logger.Storage = Storage;
 
-            if ((Main.netMode == NetmodeID.Server || Main.netMode == NetmodeID.SinglePlayer) && Fun)
+            if (Fun)
             {
-                BossCommands.Add("heal", () =>
+                //Since it not work on server (Not affect clients) untill i write packets for this Twitch boss is disabled for server
+                if(/*Main.netMode == NetmodeID.Server ||*/ Main.netMode == NetmodeID.SinglePlayer)
                 {
-                    foreach (var it in Main.player)
-                        if(it.active)
-                        {
-                            it.statLife += rand.Next(0, it.statLifeMax - it.statLife);
-                            it.statMana += rand.Next(0, it.statManaMax - it.statMana);
-                        }
-                });
+                    BossCommands.Add("heal", () =>
+                    {
+                        if (Main.netMode != NetmodeID.SinglePlayer)
+                            foreach (var it in Main.player)
+                            {
+                                if (it.active)
+                                {
+                                    it.statLife += rand.Next(0, it.statLifeMax - it.statLife);
+                                    it.statMana += rand.Next(0, it.statManaMax - it.statMana);
+                                }
+                            }
 
-                BossCommands.Add("buff", () =>
-                {
-                    foreach (var it in Main.player)
-                        if (it.active)
+                        else
                         {
-                            it.AddBuff(rand.Next(255), rand.Next(200, 2000));
+                            Main.LocalPlayer.statLife += rand.Next(0, Main.LocalPlayer.statLifeMax - Main.LocalPlayer.statLife);
+                            Main.LocalPlayer.statMana += rand.Next(0, Main.LocalPlayer.statManaMax - Main.LocalPlayer.statMana);
                         }
-                });
+                    });
 
-                BossCommands.Add("death", () =>
-                {
-                    foreach (var it in Main.player)
-                        if (it.active)
+                    BossCommands.Add("buff", () =>
+                    {
+                        if (Main.netMode != NetmodeID.SinglePlayer)
+                        {
+                            foreach (var it in Main.player)
+                                if (it.active)
+                                {
+                                    int i = rand.Next(255), j = rand.Next(200, 2000);
+                                    it.AddBuff(i, j);
+                                }
+                        }else
+                        {
+                            Main.LocalPlayer.AddBuff(rand.Next(255), rand.Next(200, 2000));
+                        }
+                    });
+
+                    BossCommands.Add("death", () =>
+                    {
+                        if (Main.netMode != NetmodeID.SinglePlayer)
+                        {
+                            foreach (var it in Main.player)
+                                if (it.active)
+                                {
+                                    if (rand.NextFloat() < 0.20f)
+                                        it.statLife = 0;
+                                }
+                        }else
                         {
                             if (rand.NextFloat() < 0.20f)
-                                it.statLife = 0;
+                                Main.LocalPlayer.statLife = 0;
                         }
-                });
 
-                BossCommands.Add("quit", () =>
-                {
-                    Send($"@{ChatBoss} become a pussy and no more chat boss!");
-                    ChatBoss = "";
-                });
+                    });
+
+                    BossCommands.Add("quit", () =>
+                    {
+                        Send($"@{ChatBoss} become a pussy and no more chat boss!");
+                        ChatBoss = "";
+                    });
+                }
+
+
+
 
 
                 //Register inner world event invasions

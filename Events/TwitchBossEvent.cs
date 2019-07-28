@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Terraria;
+using Terraria.ID;
 using Terraria.Utilities;
 using TwitchChat.IRCClient;
 
@@ -28,6 +29,10 @@ namespace TwitchChat.Events
 
         public override Func<bool> ChanceAction => () => 
         {
+            //Disabled for server currently
+            if (Main.netMode != 0)
+                return false;
+
             if (TwitchChat.Instance.ChatBoss == string.Empty || TwitchChat.Instance.ChatBoss == null)
                 return true;
 
@@ -44,6 +49,8 @@ namespace TwitchChat.Events
 
         protected override void OnStart()
         {
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+                return;
 
             rand.Clear();
 
@@ -58,6 +65,9 @@ namespace TwitchChat.Events
 
         protected override void OnEnd()
         {
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+                return;
+
             if (rand.elements.Count == 0)
             {
                 TwitchChat.Send("Noone was selected to become chat boss");
@@ -73,8 +83,9 @@ namespace TwitchChat.Events
 
             assignTime = DateTimeOffset.Now;
             TwitchChat.Post($" @{TwitchChat.Instance.ChatBoss}", Color.Purple);
-             
-            TwitchChat.Send(EndString + $" @{TwitchChat.Instance.ChatBoss} you can use heal, buff, death or quit");
+
+            if (Main.netMode != NetmodeID.MultiplayerClient)
+                TwitchChat.Send(EndString + $" @{TwitchChat.Instance.ChatBoss} you can use heal, buff, death or quit");
         }
 
 

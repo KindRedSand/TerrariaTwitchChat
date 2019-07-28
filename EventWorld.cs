@@ -149,8 +149,9 @@ namespace TwitchChat
                 writer.Write(true);
                 writer.Write(CurrentEvent.GetType().Name);
                 CurrentEvent.WriteWaveData(ref writer);
-            } else
-                writer.Write(false);
+            }
+            else
+               writer.Write(false);
         }
 
         public override void NetReceive(BinaryReader reader)
@@ -202,14 +203,15 @@ namespace TwitchChat
             if (CurrentEvent == null)
                 pucd -= 1;
 
-            WorldScheduler.Update();
+            WorldScheduler?.Update();
+            RealtimeScheduler?.Update();
 
             try
             {
 
                 //CurrentEvent?.PerformTick(this, (TwitchChat)mod);
 
-                if (Main.netMode != 1 && (CurrentEvent == null && (pucd <= 0 || Main.dayTime != lastDayState)))
+                if (Main.netMode != 1 && (CurrentEvent == null && TwitchChat.Instance.Fun && (pucd <= 0 || Main.dayTime != lastDayState)))
                 {
                     pucd = 1500;
                     foreach (var ev in TwitchChat.EventsPool)

@@ -45,7 +45,8 @@ namespace TwitchChat.Events.FirstNightEvents
                 ["mine"] = TimeToMine,
             };
 
-            TwitchChat.Send("How should the first night go? eye -> Eye of Cthulhu at beginning, peace -> no mobs during first nigh, mine -> spelunker potion effect during this night");
+            if (Main.netMode != NetmodeID.MultiplayerClient)
+                TwitchChat.Send("How should the first night go? eye -> Eye of Cthulhu at beginning, peace -> no mobs during first nigh, mine -> spelunker potion effect during this night");
 
         }
 
@@ -105,24 +106,26 @@ namespace TwitchChat.Events.FirstNightEvents
                 index = rand.Get();
             }
 
-            switch(index)
-            {
-                case 0:
-                    TwitchChat.Send("The eye incomming!");
-                    TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.AddDelayed(() => { NPC.NewNPC((int)Main.player[0].position.X, (int)Main.player[0].position.Y + 400, NPCID.EyeofCthulhu); }, 500);
-                break;
-                case 1:
-                    TwitchChat.Send("Night without enemy, have a chill time");
-                    TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new PeaceEvent()); });
-                    break;
-                case 2:
-                    TwitchChat.Send("Mining time!");
-                    TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new SpelunkerEvent()); });
-                    break;
-                case -1:
-                    TwitchChat.Send("No votes...");
-                    break;
-            }
+
+            if (Main.netMode != NetmodeID.MultiplayerClient)
+                switch (index)
+                {
+                    case 0:
+                        TwitchChat.Send("The eye incomming!");
+                        TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.AddDelayed(() => { NPC.NewNPC((int)Main.player[0].position.X, (int)Main.player[0].position.Y + 400, NPCID.EyeofCthulhu); }, 500);
+                        break;
+                    case 1:
+                        TwitchChat.Send("Night without enemy, have a chill time");
+                        TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new PeaceEvent()); });
+                        break;
+                    case 2:
+                        TwitchChat.Send("Mining time!");
+                        TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new SpelunkerEvent()); });
+                        break;
+                    case -1:
+                        TwitchChat.Send("No votes...");
+                        break;
+                }
 
         }
 

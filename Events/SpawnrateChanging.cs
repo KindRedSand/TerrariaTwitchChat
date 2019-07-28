@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Terraria;
+using Terraria.ID;
 using Terraria.Utilities;
 using TwitchChat.IRCClient;
 using TwitchChat.Overrides;
@@ -37,7 +38,8 @@ namespace TwitchChat.Events
                 ["nochange"] = NoChange,
             };
 
-            TwitchChat.Send("Time to change how many enemy will spawn: more, less, nochange");
+            if (Main.netMode != NetmodeID.MultiplayerClient)
+                TwitchChat.Send("Time to change how many enemy will spawn: more, less, nochange");
         }
 
         private void More(ChannelMessageEventArgs msg)
@@ -121,6 +123,7 @@ namespace TwitchChat.Events
                 index = rand.Get();
             }
 
+            if(Main.netMode != NetmodeID.MultiplayerClient)
             switch (index)
             {
                 case 0:

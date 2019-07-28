@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Terraria;
+using Terraria.ID;
 using Terraria.Utilities;
 using TwitchChat.IRCClient;
 
@@ -36,7 +37,8 @@ namespace TwitchChat.Events.ZergInvasion
                 ["nochange"] = NoChange,
             };
 
-            TwitchChat.Send("Zerg invasion incoming! Hom many monsters should invade the world: more, less, nochange");
+            if (Main.netMode != NetmodeID.MultiplayerClient)
+                TwitchChat.Send("Zerg invasion incoming! Hom many monsters should invade the world: more, less, nochange");
         }
 
         private void More(ChannelMessageEventArgs msg)
@@ -120,29 +122,30 @@ namespace TwitchChat.Events.ZergInvasion
                 index = rand.Get();
             }
 
-            switch (index)
-            {
-                case 0:
-                    TwitchChat.Send("More enemy!");
-                    TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new ZergRushEvent() { mul = 1000, }); });
-                    //TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.AddDelayed(() => { NPC.NewNPC((int)Main.player[0].position.X, (int)Main.player[0].position.Y + 400, NPCID.EyeofCthulhu); }, 500);
-                    break;
-                case 1:
-                    TwitchChat.Send("Less enemy");
-                    TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new ZergRushEvent() { mul = 1, }); });
+            if (Main.netMode != NetmodeID.MultiplayerClient)
+                switch (index)
+                {
+                    case 0:
+                        TwitchChat.Send("More enemy!");
+                        TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new ZergRushEvent() { mul = 1000, }); });
+                        //TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.AddDelayed(() => { NPC.NewNPC((int)Main.player[0].position.X, (int)Main.player[0].position.Y + 400, NPCID.EyeofCthulhu); }, 500);
+                        break;
+                    case 1:
+                        TwitchChat.Send("Less enemy");
+                        TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new ZergRushEvent() { mul = 1, }); });
 
-                    //TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new PeaceEvent()); });
-                    break;
-                case 2:
-                    TwitchChat.Send("No spawn changing");
-                    TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new ZergRushEvent()); });
+                        //TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new PeaceEvent()); });
+                        break;
+                    case 2:
+                        TwitchChat.Send("No spawn changing");
+                        TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new ZergRushEvent()); });
 
-                    //TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new SpelunkerEvent()); });
-                    break;
-                case -1:
-                    TwitchChat.Send("No votes...");
-                    break;
-            }
+                        //TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new SpelunkerEvent()); });
+                        break;
+                    case -1:
+                        TwitchChat.Send("No votes...");
+                        break;
+                }
 
         }
     }

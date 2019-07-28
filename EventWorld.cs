@@ -15,6 +15,7 @@ using TwitchChat.Commands.Debug;
 using TwitchChat.Events;
 using Razorwing.Framework.Threading;
 using TwitchChat.Razorwing.Overrides.Timing;
+using Terraria.ID;
 
 namespace TwitchChat
 {
@@ -67,6 +68,16 @@ namespace TwitchChat
             RealtimeScheduler = new Scheduler(Thread.CurrentThread);
 
             lastDayState = Main.dayTime;
+
+            if (ModLoader.version < new Version(0, 11, 4))
+                if (Main.netMode == NetmodeID.MultiplayerClient && mod.IsNetSynced)
+                {
+                    var p = mod.GetPacket();
+                    p.Write((byte)TwitchChat.NetPacketType.Custom);
+                    p.Write("NetSend");
+                    p.Write(true);
+                    p.Send(256);
+                }
         }
 
         
@@ -144,6 +155,16 @@ namespace TwitchChat
 
         public override void NetSend(BinaryWriter writer)
         {
+            // Hope it get fixed in next update
+            // https://github.com/tModLoader/tModLoader/issues/635
+            if (ModLoader.version < new Version(0, 11, 4))
+                return;
+
+            this.WriteNetSendData(writer);
+        }
+
+        internal void WriteNetSendData(BinaryWriter writer)
+        {
             if (CurrentEvent != null)
             {
                 writer.Write(true);
@@ -151,7 +172,7 @@ namespace TwitchChat
                 CurrentEvent.WriteWaveData(ref writer);
             }
             else
-               writer.Write(false);
+                writer.Write(false);
         }
 
         public override void NetReceive(BinaryReader reader)

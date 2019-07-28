@@ -490,11 +490,15 @@ namespace TwitchChat
 
         public override void HandlePacket(BinaryReader reader, int whoAmI)
         {
-            //Currentrly only server can said us what we should do
-            if (whoAmI != 256)
-                return;
 
             var type = (NetPacketType)reader.ReadByte();
+
+            if(type != NetPacketType.Custom)
+            {
+                //Currentrly only server can said us what we should do
+                if (whoAmI != 256)
+                    return;
+            }
 
             if (type == NetPacketType.EventWasStarted)
             {
@@ -590,6 +594,7 @@ namespace TwitchChat
             {
                 #region Constants
                 const string LunarSky = "LunarSkies";
+                const string _NetSendFix = "NetSend";
                 #endregion
 
                 string eve = reader.ReadString();
@@ -597,6 +602,21 @@ namespace TwitchChat
                 {
                     var t = (LunarSkies)reader.ReadByte();
                     EventPlayer.LunarSky = t;
+                }else if (eve == _NetSendFix)
+                {
+                    var b = reader.ReadBoolean();
+                    if(b)
+                    {
+                        var p = GetPacket();
+                        p.Write((byte)NetPacketType.Custom);
+                        p.Write(_NetSendFix);
+                        p.Write(false);
+                        GetModWorld<EventWorld>().WriteNetSendData(p);
+                        p.Send(whoAmI);
+                    }else
+                    {
+                        GetModWorld<EventWorld>().NetReceive(reader);
+                    }
                 }
             }
 

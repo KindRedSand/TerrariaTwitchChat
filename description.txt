@@ -4,6 +4,8 @@ Now with cached emoticons
 Note, mod no more only client side and marked as NoSync what mean mod still not disabling when joining server and also can be loaded at server without requiring clients haave what mod
 Server side Fun features can be synced if mod enabled in both client and server 
 Nothing happens on server if [c/98f6ef:EnableFun] = false
+Twitch Boss was disabled for server in case how terraria hadle client sync (i mean it newer get client if happened only at server)
+Will be enabled in next updates with rewrited packets handling.
 
 After you install this mod enter any world and type 
 Windows only:
@@ -50,6 +52,9 @@ Added Twitch Plays Terraria experimental module what can be enabled using
 [c/98f6ef:EnableFun] = True
    .1:
    Potential fix for crashing at mod initialization state (mod fails to move config file) 
+   .2:
+   Added a wrapper around NetSend untill tML 0.11.4 in case what clients without mod stucks in endles Mod Sync.
+   Potential fix for msg spamming twice if Host & Play
 
 0.1.0 Update:
 

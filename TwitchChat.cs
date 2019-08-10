@@ -192,7 +192,7 @@ namespace TwitchChat
             if (Fun)
             {
                 //Since it not work on server (Not affect clients) untill i write packets for this Twitch boss is disabled for server
-                if(/*Main.netMode == NetmodeID.Server ||*/ Main.netMode == NetmodeID.SinglePlayer)
+                if(Main.netMode == NetmodeID.Server || Main.netMode == NetmodeID.SinglePlayer)
                 {
                     BossCommands.Add("heal", () =>
                     {
@@ -200,16 +200,19 @@ namespace TwitchChat
                             foreach (var it in Main.player)
                             {
                                 if (it.active)
-                                {
-                                    it.statLife += rand.Next(0, it.statLifeMax - it.statLife);
-                                    it.statMana += rand.Next(0, it.statManaMax - it.statMana);
-                                }
+                                    for (int i = rand.Next(20); i > 0; i--)
+                                    {
+                                        Item.NewItem(it.position, ItemID.Heart, noGrabDelay: true);
+                                        Item.NewItem(it.position, ItemID.Star, noGrabDelay: true);
+                                    }
                             }
-
                         else
                         {
-                            Main.LocalPlayer.statLife += rand.Next(0, Main.LocalPlayer.statLifeMax - Main.LocalPlayer.statLife);
-                            Main.LocalPlayer.statMana += rand.Next(0, Main.LocalPlayer.statManaMax - Main.LocalPlayer.statMana);
+                            for (int i = rand.Next(20); i > 0; i--)
+                            {
+                                Item.NewItem(Main.LocalPlayer.position, ItemID.Heart, noGrabDelay: true);
+                                Item.NewItem(Main.LocalPlayer.position, ItemID.Star, noGrabDelay: true);
+                            }
                         }
                     });
 
@@ -220,29 +223,54 @@ namespace TwitchChat
                             foreach (var it in Main.player)
                                 if (it.active)
                                 {
-                                    int i = rand.Next(255), j = rand.Next(200, 2000);
-                                    it.AddBuff(i, j);
+                                    for (int i = rand.Next(3); i > 0; i--)
+                                    {
+                                        Item.NewItem(it.position, ItemID.NebulaPickup1, noGrabDelay: true);
+                                    }
+                                    for (int i = rand.Next(3); i > 0; i--)
+                                    {
+                                        Item.NewItem(it.position, ItemID.NebulaPickup2, noGrabDelay: true);
+                                    }
+                                    for (int i = rand.Next(3); i > 0; i--)
+                                    {
+                                        Item.NewItem(it.position, ItemID.NebulaPickup3, noGrabDelay: true);
+                                    }
                                 }
-                        }else
+                        }
+                        else
                         {
-                            Main.LocalPlayer.AddBuff(rand.Next(255), rand.Next(200, 2000));
+                            for (int i = rand.Next(3); i > 0; i--)
+                            {
+                                Item.NewItem(Main.LocalPlayer.position, ItemID.NebulaPickup1, noGrabDelay: true);
+                            }
+                            for (int i = rand.Next(3); i > 0; i--)
+                            {
+                                Item.NewItem(Main.LocalPlayer.position, ItemID.NebulaPickup2, noGrabDelay: true);
+                            }
+                            for (int i = rand.Next(3); i > 0; i--)
+                            {
+                                Item.NewItem(Main.LocalPlayer.position, ItemID.NebulaPickup3, noGrabDelay: true);
+                            }
                         }
                     });
 
                     BossCommands.Add("death", () =>
                     {
                         if (Main.netMode != NetmodeID.SinglePlayer)
-                        {
                             foreach (var it in Main.player)
+                            {
                                 if (it.active)
-                                {
-                                    if (rand.NextFloat() < 0.20f)
-                                        it.statLife = 0;
-                                }
-                        }else
+                                    for (int i = rand.Next(20); i > 0; i--)
+                                    {
+                                        Projectile.NewProjectile(it.position, new Vector2(0, 3), ProjectileID.EyeFire, 400, 0);
+                                    }
+                            }
+                        else
                         {
-                            if (rand.NextFloat() < 0.20f)
-                                Main.LocalPlayer.statLife = 0;
+                            for (int i = rand.Next(20); i > 0; i--)
+                            {
+                                Projectile.NewProjectile(Main.LocalPlayer.position, new Vector2(0, 3), ProjectileID.EyeFire, 400, 0);
+                            }
                         }
 
                     });

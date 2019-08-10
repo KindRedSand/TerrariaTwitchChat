@@ -1,11 +1,14 @@
 This mod print text from stream in game chat
 
+[c/ff3937:Please, report ANY issues with mod in discord (You can found a Link in TFC page).
+Things never get fixed if i don't know about it!]
+
+I also working on vanilla version of TwitchChat (Only chat). You can find download link in discord or use [c/98f6ef:xb7MxHu].
+
 Now with cached emoticons
 Note, mod no more only client side and marked as NoSync what mean mod still not disabling when joining server and also can be loaded at server without requiring clients haave what mod
 Server side Fun features can be synced if mod enabled in both client and server 
 Nothing happens on server if [c/98f6ef:EnableFun] = false
-Twitch Boss was disabled for server in case how terraria hadle client sync (i mean it newer get client if happened only at server)
-Will be enabled in next updates with rewrited packets handling.
 
 After you install this mod enter any world and type 
 Windows only:
@@ -14,6 +17,7 @@ Windows only:
 
 Linux/MacOS:
 Or go to /ModLoader/Mods folder (In [c/d6791a:Mods] menu click [c/d6791a:Open Mods Folder]) Cache/Twitch/Twitch.ini and open it manually
+[c/98f6ef:/t open] can work too, but not guarated.
 
 [c/98f6ef:Channel] -> stream channel name starting with [c/98f6ef:#] and should be in LOWER CASE!
 Feel free just copy it from url:
@@ -55,6 +59,9 @@ Added Twitch Plays Terraria experimental module what can be enabled using
    .2:
    Added a wrapper around NetSend untill tML 0.11.4 in case what clients without mod stucks in endles Mod Sync.
    Potential fix for msg spamming twice if Host & Play
+   .3:
+   Fixed emoticons won't loading from server since SSL error. Switched back to HTTP requests.
+   Changed way how TwitchBoss works, so it again enabled in servers
 
 0.1.0 Update:
 

@@ -1,5 +1,5 @@
 author = KindredTheFox
-version = 0.2.2
+version = 0.2.3
 languageVersion = 6
 displayName = Twitch Chat Integrations Experimental
 homepage = https://forums.terraria.org/index.php?threads/twitch-chat-integration.81093/

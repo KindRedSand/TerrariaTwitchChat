@@ -18,14 +18,11 @@ namespace TwitchChat.Chat
         internal static Dictionary<int, Texture2D> cache = new Dictionary<int, Texture2D>();
         internal static EmoticonsStore store; 
         internal static List<int> inProggres = new List<int>();
-        //internal static WebClient web = new WebClient();
         internal static int[] failsafe = { 0 };
 
 
         static EmoticonHandler()
         {
-            //web.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
-            //web.Headers.Add("accept", "image/png");
         }
 
         public EmoticonHandler()
@@ -47,8 +44,6 @@ namespace TwitchChat.Chat
 
             try
             {
-                //TwitchChat m = TwitchChat.Instance;
-
                 var t = store.Get(id);
 
                 if(t != null)
@@ -56,30 +51,6 @@ namespace TwitchChat.Chat
                     lock(cache)
                         cache.Add(id, t);
                 }
-
-                //lock (web)
-                //using (MemoryStream ms = new MemoryStream())
-                //using (var str = web.OpenRead($@"http://static-cdn.jtvnw.net/emoticons/v1/{id}/2.0"))
-                //{
-                //    //If result is different what png image we can't load it as Texture2D 
-                //    if (web.ResponseHeaders.Get("content-type") != "image/png")
-                //    {
-                //        inProggres.Remove(id);
-                //        return;
-                //    }
-
-                //    //Texture2D.FromStream requre stream with available seek operation, so we just copy all data (until EndOfStream) in to MemoryStream
-                //    str.CopyTo(ms);
-
-                //    Texture2D txt = Texture2D.FromStream(Main.graphics.GraphicsDevice, ms);
-
-                //    lock(cache)
-                //    {
-                //        cache.Add(id, txt);
-                //    }
-                //}
-
-
 
                 inProggres.Remove(id);
 
@@ -134,7 +105,7 @@ namespace TwitchChat.Chat
 
         private class EmoticonSnippet : TextSnippet
         {
-            private int id;
+            private readonly int id;
 
             public EmoticonSnippet(int id)
             {
@@ -197,6 +168,4 @@ namespace TwitchChat.Chat
         }
 
     }
-
-
 }

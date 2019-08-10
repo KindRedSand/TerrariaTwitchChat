@@ -29,10 +29,6 @@ namespace TwitchChat.Events
 
         public override Func<bool> ChanceAction => () => 
         {
-            //Disabled for server currently
-            if (Main.netMode != 0)
-                return false;
-
             if (TwitchChat.Instance.ChatBoss == string.Empty || TwitchChat.Instance.ChatBoss == null)
                 return true;
 

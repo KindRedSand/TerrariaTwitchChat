@@ -1,7 +1,7 @@
 This mod print text from stream in game chat
 
-[c/ff3937:Please, report ANY issues with mod in discord (You can found a Link in TFC page).
-Things never get fixed if i don't know about it!]
+[c/ff3937:Please, report ANY issues with mod in discord.]
+[c/ff3937:Things never get fixed if i don't know about it!]
 
 I also working on vanilla version of TwitchChat (Only chat). You can find download link in discord or use [c/98f6ef:xb7MxHu].
 

@@ -117,8 +117,6 @@ namespace TwitchChat
             }
         }
 
-        
-
         public static void Post(string m, Color color)
         {
             if (Main.netMode == NetmodeID.Server)
@@ -154,7 +152,10 @@ namespace TwitchChat
             Config = new TwitchConfig(Storage = new ModStorage(@"Twitch"));
 
             Store = new ResourceStore<byte[]>(new StorageBackedResourceStore(Storage));
-            Store.AddStore(new OnlineStore());
+            if (ModLoader.version.Major == 10)
+                Store.AddStore(new OnlineStore());
+            else
+                Store.AddStore(new WebStore("image/png"));
 
             Textures = new Texture2DStore(Store);
 
@@ -187,7 +188,7 @@ namespace TwitchChat
             Channel = Config.Get<string>(TwitchCfg.Channel);
 
             if (ShowDebug)
-                Logger.Storage = Storage;
+                global::Razorwing.Framework.Logging.Logger.Storage = Storage; ///Thx tML 0.11 for adding <see cref="Mod.Logger"/> <3 Breaking all as allways 
 
             if (Fun)
             {
@@ -483,23 +484,24 @@ namespace TwitchChat
         {
             base.Unload();
 
-            using (var p = Storage?.GetStream("EmoteIDs.json", FileAccess.Write))
-            using (var s = new StreamWriter(p))
-            {
-                s.Write(JsonConvert.SerializeObject(EmoticonHandler.convertingEmotes, Formatting.Indented));
-            }
+            if(Storage != null)
+                using (var p = Storage?.GetStream("EmoteIDs.json", FileAccess.Write))
+                using (var s = new StreamWriter(p))
+                {
+                    s.Write(JsonConvert.SerializeObject(EmoticonHandler.convertingEmotes, Formatting.Indented));
+                }
 
             if (Irc?.Connected ?? false)
                 Irc?.Disconnect();
             Irc?.Dispose();
             Irc = null;
-            Config.Load();
-            Config.Dispose();
+            Config?.Load();
+            Config?.Dispose();
             Config = null;
             Storage = null;
-            Store.Dispose();
+            Store?.Dispose();
             Store = null;
-            Textures.Dispose();
+            Textures?.Dispose();
             Textures = null;
 
             if (GetModWorld<EventWorld>() != null)

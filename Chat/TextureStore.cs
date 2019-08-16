@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Razorwing.Framework.IO.Stores;
+using System.IO;
 
 namespace TwitchChat.Chat
 {
@@ -55,6 +56,8 @@ namespace TwitchChat.Chat
                         if (str == null)
                             return null;
                         textureCache[name] = tex = Texture2D.FromStream(Main.graphics.GraphicsDevice, str);
+                        if (str is MemoryStream)///TODO: remove this when HttpClient issue was fixed in tML
+                            str.Dispose();
                     }
                         
                 }

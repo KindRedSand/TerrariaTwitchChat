@@ -3,6 +3,7 @@ using Razorwing.Framework.Platform;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -39,6 +40,14 @@ namespace TwitchChat.Razorwing.Overrides
             {
                 Process.Start("explorer.exe", GetFullPath(string.Empty));
             }
+        }
+
+        public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
+        {
+            if (path.StartsWith("http"))///TODO: remove this when HttpClient issue was fixed in tML
+                return null;
+            else
+                return base.GetStream(path, access, mode);
         }
     }
 }

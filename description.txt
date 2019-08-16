@@ -3,6 +3,9 @@ This mod print text from stream in game chat
 [c/ff3937:Please, report ANY issues with mod in discord.]
 [c/ff3937:Things never get fixed if i don't know about it!]
 
+Switched back to WebClient from HttpClient since tML 0.11 breaks whole System.Net.Http branch with renaming the assembly
+Until it get fixed, emoticons will downloads way slower but will work in 0.11
+
 I also working on vanilla version of TwitchChat (Only chat). You can find download link in discord or use [c/98f6ef:xb7MxHu].
 
 Now with cached emoticons
@@ -47,7 +50,7 @@ Also, each emote loaded from twitch chat can be reused using \[e:EmoteAlias] tag
 You can also send messages in chat using
 [c/98f6ef:/t m Your Text Here]
 
-0.2.1 Update:
+0.2.4 Update:
 
 Changed emoticons delivery system, changed storage folder to 
   /ModLoader/Mods/Cache/Twitch
@@ -62,6 +65,9 @@ Added Twitch Plays Terraria experimental module what can be enabled using
    .3:
    Fixed emoticons won't loading from server since SSL error. Switched back to HTTP requests.
    Changed way how TwitchBoss works, so it again enabled in servers
+   .4
+   Fall back to WebClient since tML 0.11 breaks System.Net.Http assembly
+   Now emoticons should load, but way slower. I hope it get fixed in future
 
 0.1.0 Update:
 

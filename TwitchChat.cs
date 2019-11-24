@@ -53,6 +53,8 @@ namespace TwitchChat
 
         public Bindable<string> LastStatus = new Bindable<string>($"[c/{TwitchColor}: Client not connected]");
         private readonly UnifiedRandom rand = new UnifiedRandom();
+        public List<string> RecentChatters = new List<string>();
+
 
         public bool ShowDebug;
         public string Username = "";
@@ -129,8 +131,19 @@ namespace TwitchChat
         {
             base.Load();
 
-            Instance = this;
+            RecentChatters = new List<string>();
 
+#if DEBUG
+            RecentChatters.AddRange(new string[]
+            {
+                "Nightbot",
+                "KarmikKoalla",
+                "Moobot",
+                "SomeoneFromChat",
+            });
+#endif
+
+            Instance = this;
 
             BossCommands = new Dictionary<string, Action>();
 
@@ -388,6 +401,9 @@ namespace TwitchChat
 
                     //String format 
                     Main.NewText($@"{prefix} [c/{TwitchColor}:{e.Badge.DisplayName}]: {result}");
+
+                    if (!RecentChatters.Contains(e.Badge.DisplayName))
+                        RecentChatters.Add(e.Badge.DisplayName);
                 }
 
                 if ((Main.netMode == NetmodeID.Server || Main.netMode == NetmodeID.SinglePlayer) && Fun)
@@ -428,6 +444,59 @@ namespace TwitchChat
                 Irc.AuthToken = OldConfig.Get<string>(TwitchCfg.OAToken);
                 Irc.Connect();
             }
+
+            On.Terraria.WorldGen.SpawnTownNPC += SpawnTownNpcHook;
+        }
+
+        internal static int[] shadowNpc = new int[256];
+
+        private Terraria.Enums.TownNPCSpawnResult SpawnTownNpcHook(On.Terraria.WorldGen.orig_SpawnTownNPC orig, int x, int y)
+        {
+            //Avoid crush when we not in world
+            if (Main.gameMenu)
+                return Terraria.Enums.TownNPCSpawnResult.Blocked;
+
+            var v = orig?.Invoke(x, y) ?? Terraria.Enums.TownNPCSpawnResult.Blocked;
+            if (v != Terraria.Enums.TownNPCSpawnResult.Successful)
+                return v;
+            
+            //if game actually spawn new town npc
+            var w = ModContent.GetInstance<TwitchWorld>();
+            var r = new WeightedRandom<string>();
+            var l = RecentChatters.Except(w.UsedNicks);
+
+            //If we have any usernames to append
+            if (!l.Any())
+                return v;
+            foreach (var it in l)
+                r.Add(it);
+            //Then select random nick
+            var username = r.Get();
+
+            //Go through shadow array
+            for (int i = 0; i < Main.npc.Length; i++)
+            {
+                //If this is active town npc and has different typeID what this slot has before
+                if (Main.npc[i].active && Main.npc[i].townNPC && shadowNpc[i] != Main.npc[i].type)
+                {
+                    //Post a message
+                    Post($"But wait, he's actually a [c/{TwitchColor}:{username}]!", Color.White);
+                    w.UsedNicks.Add(username);
+                    //Add a scheduled action since npc's at this moment isn't reseted yet
+                    ModContent.GetInstance<EventWorld>().WorldScheduler.AddDelayed(
+                        () => { Main.npc[i].GivenName = username; },
+                        5);
+                    break;
+                }
+            }
+
+            //Update shadow array
+            for (int i = 0; i < Main.npc.Length; i++)
+            {
+                TwitchChat.shadowNpc[i] = Main.npc[i].type;
+            }
+
+            return v;
         }
 
         public override void UpdateMusic(ref int music, ref MusicPriority priority)
@@ -468,6 +537,9 @@ namespace TwitchChat
             Store = null;
             Textures?.Dispose();
             Textures = null;
+            RecentChatters = null;
+            On.Terraria.WorldGen.SpawnTownNPC -= SpawnTownNpcHook;
+            
 
             if (ModContent.GetInstance<EventWorld>() != null)
             {

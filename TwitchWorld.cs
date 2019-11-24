@@ -14,10 +14,13 @@ namespace TwitchChat
 
         public bool firstNight = false;
 
+        public List<string> UsedNicks = new List<string>();
+
         public override void Load(TagCompound tag)
         {
             firstNight = tag.ContainsKey("firstNigh") ? (bool)tag["firstNight"] : false;
             firstNight = true;
+            UsedNicks = tag.ContainsKey("usedNicks") ? (List<string>) tag["usedNicks"] : new List<string>();
         }
 
         public override TagCompound Save()
@@ -25,6 +28,7 @@ namespace TwitchChat
             return new TagCompound()
             {
                 ["firstNight"] = firstNight,
+                ["usedNicks"]  = UsedNicks,
             };
             
         }
@@ -35,6 +39,10 @@ namespace TwitchChat
         {
             base.Initialize();
             statePrinted = false;
+            for (int i = 0; i < Main.npc.Length; i++)
+            {
+                TwitchChat.shadowNpc[i] = Main.npc[i].type;
+            }
         }
 
 
@@ -47,6 +55,7 @@ namespace TwitchChat
                 statePrinted = true;
             }
         }
+
 
     }
 }

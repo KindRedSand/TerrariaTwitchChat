@@ -26,7 +26,6 @@ namespace TwitchChat.Overrides
 
         public static void EndOverride() => isOverriding = false;
 
-
         public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns)
         {
          

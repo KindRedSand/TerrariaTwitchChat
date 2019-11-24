@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Terraria;
 using Terraria.ID;
+using Terraria.ModLoader;
 using Terraria.Utilities;
 using TwitchChat.IRCClient;
 
@@ -12,15 +13,15 @@ namespace TwitchChat.Events.ZergInvasion
 {
     public class ZergVoteEvent : IWorldEvent
     {
-        public override int Cooldown => 1500;
+        public override int Cooldown { get; set; } = 1500;
 
-        public override float Chance => NPC.downedMechBossAny ? 0.1f : 0;
+        public override float Chance { get; set; } = NPC.downedMechBossAny ? 0.1f : 0;
 
         public override IDictionary<int, float> Invaders => null;
 
         public override string StartString => "Didn't you noticed what where not enought enemies?";
 
-        public override int Lengt => 3600;
+        public override int Length => 3600;
 
         public static Dictionary<string, int> StandartVotes = new Dictionary<string, int> { };
 
@@ -122,25 +123,27 @@ namespace TwitchChat.Events.ZergInvasion
                 index = rand.Get();
             }
 
+            var world = ModContent.GetInstance<EventWorld>();
+
             if (Main.netMode != NetmodeID.MultiplayerClient)
                 switch (index)
                 {
                     case 0:
                         TwitchChat.Send("More enemy!");
-                        TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new ZergRushEvent() { mul = 1000, }); });
-                        //TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.AddDelayed(() => { NPC.NewNPC((int)Main.player[0].position.X, (int)Main.player[0].position.Y + 400, NPCID.EyeofCthulhu); }, 500);
+                        world.WorldScheduler.Add(() => { world.StartWorldEvent(new ZergRushEvent() { mul = 1000, }); });
+                        //world.WorldScheduler.AddDelayed(() => { NPC.NewNPC((int)Main.player[0].position.X, (int)Main.player[0].position.Y + 400, NPCID.EyeofCthulhu); }, 500);
                         break;
                     case 1:
                         TwitchChat.Send("Less enemy");
-                        TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new ZergRushEvent() { mul = 1, }); });
+                        world.WorldScheduler.Add(() => { world.StartWorldEvent(new ZergRushEvent() { mul = 1, }); });
 
-                        //TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new PeaceEvent()); });
+                        //world.WorldScheduler.Add(() => { world.StartWorldEvent(new PeaceEvent()); });
                         break;
                     case 2:
                         TwitchChat.Send("No spawn changing");
-                        TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new ZergRushEvent()); });
+                        world.WorldScheduler.Add(() => { world.StartWorldEvent(new ZergRushEvent()); });
 
-                        //TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new SpelunkerEvent()); });
+                        //world.WorldScheduler.Add(() => { world.StartWorldEvent(new SpelunkerEvent()); });
                         break;
                     case -1:
                         TwitchChat.Send("No votes...");

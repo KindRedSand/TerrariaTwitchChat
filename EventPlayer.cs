@@ -24,18 +24,22 @@ namespace TwitchChat
 
         public override void PostUpdate()
         {
+            var world = ModContent.GetInstance<EventWorld>();
+
             if (Main.netMode == 1)
             {
-                if(mod.GetModWorld<EventWorld>().CurrentEvent != null)
+                if(world.CurrentEvent != null)
                 {
-                    mod.GetModWorld<EventWorld>().CurrentEvent.PerformTick(mod.GetModWorld<EventWorld>(), (TwitchChat)mod);
+                    world.CurrentEvent.PerformTick(world, (TwitchChat)mod);
                 }
             }
         }
 
         public override void UpdateDead()
         {
-            var e = mod.GetModWorld<EventWorld>().CurrentEvent;
+            var world = ModContent.GetInstance<EventWorld>();
+
+            var e = world.CurrentEvent;
             if (e is ZergRushEvent)
                 e.TimeLeft -= 20;
         }

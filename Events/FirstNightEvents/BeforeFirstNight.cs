@@ -13,17 +13,17 @@ namespace TwitchChat.Events.FirstNightEvents
 {
     public class BeforeFirstNight : IWorldEvent
     {
-        public override int Cooldown => 100;
+        public override int Cooldown { get; set; } = 100;
 
-        public override float Chance => 0.9f;
+        public override float Chance { get; set; } = 0.9f;
 
         public override TriggerCondition Condition => TriggerCondition.OnDay;
 
-        public override int Lengt => (int)(Main.dayLength  - Main.time);
+        public override int Length => (int)(Main.dayLength  - Main.time);
 
         public override Func<bool> ConditionAction => () =>
         {
-            if(!ModLoader.GetMod("TwitchChat").GetModWorld<TwitchWorld>().firstNight)
+            if(!ModContent.GetInstance<TwitchWorld>().firstNight)
                 return true;
             return false;
         };
@@ -64,6 +64,8 @@ namespace TwitchChat.Events.FirstNightEvents
 
         protected override void OnEnd()
         {
+            var world = ModContent.GetInstance<EventWorld>();
+
             if (ended)
                 return;
             ended = true;
@@ -94,7 +96,7 @@ namespace TwitchChat.Events.FirstNightEvents
                 }
             }
 
-            TwitchChat.Instance.GetModWorld<TwitchWorld>().firstNight = true;
+            ModContent.GetInstance<TwitchWorld>().firstNight = true;
 
 
             if (index == draftIndex && index != -1)
@@ -112,15 +114,15 @@ namespace TwitchChat.Events.FirstNightEvents
                 {
                     case 0:
                         TwitchChat.Send("The eye incomming!");
-                        TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.AddDelayed(() => { NPC.NewNPC((int)Main.player[0].position.X, (int)Main.player[0].position.Y + 400, NPCID.EyeofCthulhu); }, 500);
+                        world.WorldScheduler.AddDelayed(() => { NPC.NewNPC((int)Main.player[0].position.X, (int)Main.player[0].position.Y + 400, NPCID.EyeofCthulhu); }, 500);
                         break;
                     case 1:
                         TwitchChat.Send("Night without enemy, have a chill time");
-                        TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new PeaceEvent()); });
+                        world.WorldScheduler.Add(() => { world.StartWorldEvent(new PeaceEvent()); });
                         break;
                     case 2:
                         TwitchChat.Send("Mining time!");
-                        TwitchChat.Instance.GetModWorld<EventWorld>().WorldScheduler.Add(() => { TwitchChat.Instance.GetModWorld<EventWorld>().StartWorldEvent(new SpelunkerEvent()); });
+                        world.WorldScheduler.Add(() => { world.StartWorldEvent(new SpelunkerEvent()); });
                         break;
                     case -1:
                         TwitchChat.Send("No votes...");
@@ -167,9 +169,9 @@ namespace TwitchChat.Events.FirstNightEvents
 
         public class PeaceEvent : IWorldEvent
         {
-            public override int Cooldown => 0;
+            public override int Cooldown { get; set; } = 0;
 
-            public override float Chance => 0;
+            public override float Chance { get; set; } = 0;
 
             public override string StartString => "Peace night. Only ducks can shatter your mind...";
 
@@ -199,9 +201,9 @@ namespace TwitchChat.Events.FirstNightEvents
 
         public class SpelunkerEvent : IWorldEvent
         {
-            public override int Cooldown => 0;
+            public override int Cooldown { get; set; } = 0;
 
-            public override float Chance => 0;
+            public override float Chance { get; set; } = 0;
 
             public override string StartString => "You start sense all ores";
 

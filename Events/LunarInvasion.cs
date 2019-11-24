@@ -1,16 +1,9 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
-using Terraria.Localization;
-using Terraria.ModLoader;
 using Terraria.ID;
-using Microsoft.Xna.Framework;
-using Terraria.GameContent.Skies;
 using TwitchChat.Overrides;
-using Terraria.Graphics.Effects;
 
 namespace TwitchChat.Events
 {
@@ -18,27 +11,22 @@ namespace TwitchChat.Events
     {
         public override int MusicId => MusicID.TheTowers;
 
-        public override int Cooldown => 5000;
+        public override int Cooldown { get; set; } = 5000;
 
         public override bool UseWarning => true;
 
         public override int StartDelay => 300;
 
-        public override float Chance => 0.0f;
+        public override float Chance { get; set; } = 0.0f;
 
         public override string StartString => "Your doom begin!";
         public override string EndString => "You survived!";
-        public override string Warning => "Impeting doom aproach...";
+        public override string Warning => "Impeting doom approach...";
 
         public override TriggerCondition Condition => TriggerCondition.OnNightBegin;
 
-        //Make this event as post moonlord
-        public override Func<bool> ConditionAction => () =>
-        {
-            if (NPC.downedMoonlord)
-                return true;
-            return false;
-        };
+        //Make this event as post moon lord
+        public override Func<bool> ConditionAction => () => NPC.downedMoonlord;
 
 
 

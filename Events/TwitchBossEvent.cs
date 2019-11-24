@@ -13,9 +13,9 @@ namespace TwitchChat.Events
 {
     public class TwitchBossEvent : IWorldEvent
     {
-        public override int Cooldown => 1000;
+        public override int Cooldown { get; set; } = 1000;
 
-        public override float Chance => 0.1f;
+        public override float Chance { get; set; } = 0.1f;
 
         public override IDictionary<int, float> Invaders => null;
 
@@ -25,7 +25,7 @@ namespace TwitchChat.Events
 
         private DateTimeOffset assignTime = DateTimeOffset.Now;
 
-        public override int Lengt => 60 * 30;
+        public override int Length => 60 * 30;
 
         public override Func<bool> ChanceAction => () => 
         {

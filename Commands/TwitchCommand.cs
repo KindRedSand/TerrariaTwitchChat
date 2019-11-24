@@ -27,11 +27,11 @@ namespace TwitchChat.Commands
             {
                 if (args[0].ToLower() == "connect" || args[0].ToLower() == "c")
                 {
-                    if (mod.Config.Get<string>(TwitchCfg.OAToken) != "https://twitchapps.com/tmi/"
-                        && mod.Config.Get<string>(TwitchCfg.Username) != "missingno")
+                    if (mod.OldConfig.Get<string>(TwitchCfg.OAToken) != "https://twitchapps.com/tmi/"
+                        && mod.OldConfig.Get<string>(TwitchCfg.Username) != "missingno")
                     {
-                        mod.Irc.Username = mod.Config.Get<string>(TwitchCfg.Username);
-                        mod.Irc.AuthToken = mod.Config.Get<string>(TwitchCfg.OAToken);
+                        mod.Irc.Username = mod.OldConfig.Get<string>(TwitchCfg.Username);
+                        mod.Irc.AuthToken = mod.OldConfig.Get<string>(TwitchCfg.OAToken);
                         mod.Irc.Connect();
                     }  
                     else

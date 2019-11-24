@@ -23,7 +23,7 @@ namespace TwitchChat.Events
         public virtual string Warning => "";
 
         //Now in world ticks
-        public virtual int StartDelay => 0;
+        public virtual int StartDelay { get; set; } = 0;
         public virtual string StartString => $"";
         public virtual string EndString => $"";
         public virtual Color WarnColor => Color.BlanchedAlmond;
@@ -37,12 +37,13 @@ namespace TwitchChat.Events
         /// TwitchChat.Instance.GetSoundSlot(SoundType.Music, "Sounds/Music/VeryImportantMusic"));
         /// </code>
         /// </summary>
-        public virtual int MusicId => -1;
+        public virtual int MusicId { get; set; } = -1;
+
         #endregion
 
         #region Time
         /// <summary>
-        /// Allow easy chek for daytime
+        /// Allow easy check for daytime
         /// </summary>
         public bool IsDaystateValid
         {
@@ -50,9 +51,7 @@ namespace TwitchChat.Events
             {
                 if (Main.dayTime && Condition.HasFlag(TriggerCondition.Day))
                     return true;
-                if (!Main.dayTime && Condition.HasFlag(TriggerCondition.Night))
-                    return true;
-                return false;
+                return (!Main.dayTime && Condition.HasFlag(TriggerCondition.Night));
             }
         }
 
@@ -61,12 +60,14 @@ namespace TwitchChat.Events
         /// Cooldown betwen events that starts automatically
         /// Should be in ~seconds~ game ticks
         /// </summary>
-        public abstract int Cooldown { get; }
+        public abstract int Cooldown { get; set; }
+
         /// <summary>
         /// Lenght of event, if this starts not by using <see cref="TriggerCondition.OnDayBegin"/> or <see cref="TriggerCondition.OnNightBegin"/>.
         /// In game ticks, there 32400 -> night time, 54000 -> day time
         /// </summary>
-        public virtual int Lengt => 32400;
+        public virtual int Length { get; set; } = 32400;
+
         private double timeStart = 0;
 
         /// <summary>
@@ -80,7 +81,7 @@ namespace TwitchChat.Events
         /// Chance to this event "happen"
         /// In percents there 1.f = 100%
         /// </summary>
-        public abstract float Chance { get; }
+        public abstract float Chance { get; set; }
 
         /// <summary>
         /// Start condition of this event.
@@ -247,7 +248,7 @@ namespace TwitchChat.Events
             Post(StartString, StartColor);
 
             started = true;
-            TimeLeft = Lengt;
+            TimeLeft = Length;
             timeStart = Main.time;
 
             //Count Players

@@ -14,9 +14,9 @@ namespace TwitchChat.Events
     {
         public override int MusicId => MusicID.Jungle;
 
-        public override int Cooldown => 5000;
+        public override int Cooldown { get; set; } = 5000;
 
-        public override float Chance => 0.00f;
+        public override float Chance { get; set; } = 0.00f;
 
         public override bool DisableOthers => true;
 
@@ -32,7 +32,7 @@ namespace TwitchChat.Events
         };
 
 
-        public override int Lengt => 2000;
+        public override int Length => 2000;
 
         //
         private readonly IDictionary<int, float> dp = new Dictionary<int, float>

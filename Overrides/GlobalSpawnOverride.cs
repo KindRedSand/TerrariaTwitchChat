@@ -94,11 +94,13 @@ namespace TwitchChat.Overrides
 
         public override void NPCLoot(NPC npc)
         {
+            var world = ModContent.GetInstance<EventWorld>();
+
             if (useTuple)
             {
                 if (invasionTuple.ContainsKey(npc.type))
                 {
-                    mod.GetModWorld<EventWorld>().CurrentEvent.TimeLeft -= invasionTuple[npc.type].Item2;
+                    world.CurrentEvent.TimeLeft -= invasionTuple[npc.type].Item2;
                 }
             }
 
@@ -163,9 +165,9 @@ namespace TwitchChat.Overrides
                 }
             }
         }
-       
 
-        static internal void HandleCleanup()
+
+        internal static void HandleCleanup()
         {
             spawnPool = null;
             itemPool = null;

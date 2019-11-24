@@ -12,9 +12,9 @@ namespace TwitchChat.Events.ZergInvasion
 {
     public class ZergRushEvent : IWorldEvent
     {
-        public override int Cooldown => 60000;
+        public override int Cooldown { get; set; } = 60000;
 
-        public override float Chance => 0;
+        public override float Chance { get; set; } = 0;
 
         public override IDictionary<int, float> Invaders => null;
 

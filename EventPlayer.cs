@@ -1,45 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Terraria;
-using Terraria.Graphics.Effects;
+﻿using Terraria;
 using Terraria.ModLoader;
+using TwitchChat.Events;
 using TwitchChat.Events.ZergInvasion;
-using TwitchChat.Overrides;
 
 namespace TwitchChat
 {
     public class EventPlayer : ModPlayer
     {
+        public static LunarSkies LunarSky = LunarSkies.None;
         internal bool frameUpdated = false;
 
-        public static LunarSkies LunarSky = LunarSkies.None;
-
-        public override void UpdateBiomeVisuals()
-        {
-            
-        }
+        public override void UpdateBiomeVisuals() { }
 
         public override void PostUpdate()
         {
-            var world = ModContent.GetInstance<EventWorld>();
+            EventWorld world = ModContent.GetInstance<EventWorld>();
 
             if (Main.netMode == 1)
-            {
-                if(world.CurrentEvent != null)
-                {
-                    world.CurrentEvent.PerformTick(world, (TwitchChat)mod);
-                }
-            }
+                if (world.CurrentEvent != null)
+                    world.CurrentEvent.PerformTick(world, (TwitchChat) mod);
         }
 
         public override void UpdateDead()
         {
-            var world = ModContent.GetInstance<EventWorld>();
+            EventWorld world = ModContent.GetInstance<EventWorld>();
 
-            var e = world.CurrentEvent;
+            WorldEvent e = world.CurrentEvent;
             if (e is ZergRushEvent)
                 e.TimeLeft -= 20;
         }
@@ -63,7 +49,6 @@ namespace TwitchChat
                     break;
             }
         }
-
     }
 
     public enum LunarSkies : byte
@@ -74,5 +59,4 @@ namespace TwitchChat
         Nebula,
         None
     }
-    
 }

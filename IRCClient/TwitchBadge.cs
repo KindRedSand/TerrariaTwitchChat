@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-
-namespace TwitchChat.IRCClient
+﻿namespace TwitchChat.IRCClient
 {
     public struct Badge
     {
@@ -13,13 +7,14 @@ namespace TwitchChat.IRCClient
         public string DisplayName;
         public bool turbo;
         public string[] emotes;
+
         public Badge(bool somthing)
         {
-            this.sub = false;
-            this.mod = false;
-            this.DisplayName = "";
-            this.turbo = false;
-            this.emotes = new string[1];
+            sub = false;
+            mod = false;
+            DisplayName = "";
+            turbo = false;
+            emotes = new string[1];
         }
     }
 }

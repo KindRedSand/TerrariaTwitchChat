@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ID;
-using Terraria.ModLoader;
 
 namespace TwitchChat.Events
 {
-    public class TheTestEvent : IWorldEvent
+    public class TheTestEvent : WorldEvent
     {
         public override int MusicId => MusicID.Jungle;
 
@@ -24,25 +19,17 @@ namespace TwitchChat.Events
 
         public override float SpawnRateMul => 2;
 
-        public override Func<bool> ConditionAction => () =>
-        {
-            if (NPC.downedQueenBee)
-                return true;
-            return false;
-        };
+        public override Func<bool> ConditionAction => () => NPC.downedQueenBee;
 
 
         public override int Length => 2000;
 
-        //
-        private readonly IDictionary<int, float> dp = new Dictionary<int, float>
+        public override IDictionary<int, float> InvadersDrop { get; } = new Dictionary<int, float>
         {
-            [ItemID.Acorn] = 0.5f,
+            [ItemID.Acorn] = 0.5f
         };
-        public override IDictionary<int, float> InvadersDrop => dp;
 
-        //Couse terraria code is shit, better have one instance, instead return each time new
-        private readonly IDictionary<int, float> op = new Dictionary<int, float>
+        public override IDictionary<int, float> Invaders { get; } = new Dictionary<int, float>
         {
             [NPCID.Duck] = 0.5f,
             [NPCID.Duck2] = 0.5f,
@@ -53,10 +40,7 @@ namespace TwitchChat.Events
             [NPCID.BunnyXmas] = 0.5f,
             [NPCID.Butterfly] = 0.5f,
             [NPCID.GoldButterfly] = 0.1f,
-            [NPCID.Duck] = 0.5f,
+            [NPCID.Duck] = 0.5f
         };
-
-        public override IDictionary<int, float> Invaders => op;
-        //
     }
 }

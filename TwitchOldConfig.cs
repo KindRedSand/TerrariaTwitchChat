@@ -1,22 +1,35 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
+using Razorwing.Framework;
 using Razorwing.Framework.Configuration;
 using Razorwing.Framework.Platform;
+using Razorwing.Framework.Platform.Linux;
+using Razorwing.Framework.Platform.Windows;
 using Terraria.ModLoader.Config;
-using TwitchChat.Events;
-using Terraria;
 
 namespace TwitchChat
 {
-
     public class TwitchConfig : ModConfig
     {
+        private bool autoReconnect = true;
+
+        private string channel = "";
+
+        private string commandPrefix = "!";
+
+
+        private bool funMode;
+
+        private bool ignoreCommands;
+
+        private bool showIRC;
+
+        private string username = "";
         public override ConfigScope Mode => ConfigScope.ClientSide;
 
         private bool available => mod != null && ((TwitchChat) mod).OldConfig != null;
         private TwitchOldConfig cfg => ((TwitchChat) mod)?.OldConfig;
 
-        private string username = "";
         [Label("Twitch Username")]
         [Tooltip("Username used to authorize you in twitch IRC server. Lowercase will be forced automatically")]
         [DefaultValue("missingno")]
@@ -34,7 +47,6 @@ namespace TwitchChat
             }
         }
 
-        private string channel = "";
         [Label("Target channel")]
         [Tooltip("IRC name of channel where to listen messages. In nearly any cases equal streamer username. Require mod reloading to confirm channel rejoining. Lowercase will be forced automatically")]
         [DefaultValue("#kindredthefox")]
@@ -54,13 +66,13 @@ namespace TwitchChat
         }
 
         /// <summary>
-        /// Duplicate it to old config to prevent a token
+        ///     Duplicate it to old config to prevent a token
         /// </summary>
         private string token
         {
             get => !available
                 ? string.Empty
-                : (cfg?.Get<string>(TwitchCfg.OAToken) ?? string.Empty).StartsWith("oauth:") 
+                : (cfg?.Get<string>(TwitchCfg.OAToken) ?? string.Empty).StartsWith("oauth:")
                     ? "oauth:"
                     : string.Empty;
 
@@ -74,21 +86,21 @@ namespace TwitchChat
             get => token != string.Empty;
             set
             {
-                switch (global::Razorwing.Framework.RuntimeInfo.OS)
+                switch (RuntimeInfo.OS)
                 {
-                    case global::Razorwing.Framework.RuntimeInfo.Platform.Windows:
-                        var cw = new global::Razorwing.Framework.Platform.Windows.WindowsClipboard();
+                    case RuntimeInfo.Platform.Windows:
+                        WindowsClipboard cw = new WindowsClipboard();
                         var sw = cw.GetText();
-                        if (sw != null && sw.StartsWith("oauth:") && sw != token) 
+                        if (sw != null && sw.StartsWith("oauth:") && sw != token)
                             token = sw;
                         break;
-                    case global::Razorwing.Framework.RuntimeInfo.Platform.Linux:
-                        var cl = new global::Razorwing.Framework.Platform.Linux.LinuxClipboard();
+                    case RuntimeInfo.Platform.Linux:
+                        LinuxClipboard cl = new LinuxClipboard();
                         var sl = cl.GetText();
                         if (sl != null && sl.StartsWith("oauth:") && sl != token)
                             token = sl;
                         break;
-                    case global::Razorwing.Framework.RuntimeInfo.Platform.MacOsx:
+                    case RuntimeInfo.Platform.MacOsx:
                     default:
                         //RIP since i don't have any device with MacOS so idk how it works
                         //And i don't want to carry even more dependency to support apple things since it can be broken trought tML sandboxing
@@ -110,7 +122,6 @@ namespace TwitchChat
             }
         }
 
-        private bool autoReconnect = true;
         [Label("Auto reconnect")]
         [Tooltip("Force client to automatically reconnect to IRC when connection get losted")]
         [DefaultValue(true)]
@@ -126,7 +137,6 @@ namespace TwitchChat
             }
         }
 
-        private bool ignoreCommands = false;
         [Label("Ignore Commands")]
         [Tooltip("Force client to ignore commands messages and messages from known bots including your own in case self botting")]
         [DefaultValue(false)]
@@ -142,7 +152,6 @@ namespace TwitchChat
             }
         }
 
-        private string commandPrefix = "!";
         [Label("Command prefix")]
         [DefaultValue("!")]
         public string CommandPrefix
@@ -169,7 +178,6 @@ namespace TwitchChat
             "stay_hydrated_bot"
         };
 
-        private bool showIRC = false;
         [Label("Show Debug")]
         [Tooltip("Show all IRC data in chat and also enables internal mod logging.")]
         [DefaultValue(false)]
@@ -185,8 +193,6 @@ namespace TwitchChat
             }
         }
 
-
-        private bool funMode = false;
         [Label("Enable Fun (Twitch Plays Terraria)")]
         [Tooltip("Enables experimental features.")]
         [DefaultValue(false)]
@@ -206,19 +212,20 @@ namespace TwitchChat
         [Tooltip("Required in order to apply changes.")]
         [DefaultValue(false)]
         public bool ReloadBtn { get; set; }
-
-
     }
 
 
-    
-
     /// <summary>
-    /// No more needed since ModLoader now has own config manager, but remain this for legacy loading
-    /// for update
+    ///     No more needed since ModLoader now has own config manager, but remain this for legacy loading
+    ///     for update
     /// </summary>
     public class TwitchOldConfig : IniConfigManager<TwitchCfg>
     {
+        public TwitchOldConfig(Storage storage)
+            : base(storage)
+        {
+        }
+
         protected override string Filename => @"Twitch.ini";
 
         protected override void InitialiseDefaults()
@@ -232,11 +239,6 @@ namespace TwitchChat
             Set(TwitchCfg.IgnoreCommandPrefix, "!");
             Set(TwitchCfg.EnableFun, false);
         }
-
-        public TwitchOldConfig(Storage storage)
-            : base(storage)
-        {
-        }
     }
 
     public enum TwitchCfg
@@ -248,6 +250,6 @@ namespace TwitchChat
         ShowAllIrc,
         IgnoreCommands,
         IgnoreCommandPrefix,
-        EnableFun,
+        EnableFun
     }
 }

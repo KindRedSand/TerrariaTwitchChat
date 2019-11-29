@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Terraria;
+﻿using System.Collections.Generic;
 using Terraria.ModLoader;
-using Razorwing.Framework.Extensions;
 
 namespace TwitchChat.Commands
 {
@@ -19,65 +13,63 @@ namespace TwitchChat.Commands
 
         public override string Usage => "/t connect (c) / disconnect (dc) / reload (r) / open (o) / settings (s) / message (msg, m)";
 
-        private new TwitchChat mod => (TwitchChat)((ModCommand)this).mod;
+        private TwitchChat Mod => (TwitchChat) mod;
 
         public override void Action(CommandCaller caller, string input, string[] args)
         {
             if (args.Length > 0)
-            {
-                if (args[0].ToLower() == "connect" || args[0].ToLower() == "c")
+                switch (args[0].ToLower())
                 {
-                    if (mod.OldConfig.Get<string>(TwitchCfg.OAToken) != "https://twitchapps.com/tmi/"
-                        && mod.OldConfig.Get<string>(TwitchCfg.Username) != "missingno")
-                    {
-                        mod.Irc.Username = mod.OldConfig.Get<string>(TwitchCfg.Username);
-                        mod.Irc.AuthToken = mod.OldConfig.Get<string>(TwitchCfg.OAToken);
-                        mod.Irc.Connect();
-                    }  
-                    else
-                    {
-                        caller.Reply("You missed username or token in settings. Type /t s to open settings file and /t r to reload mod");
-                    }
-                }else
-                if (args[0].ToLower() == "disconnect" || args[0].ToLower() == "dc")
-                {
-                    mod.Irc.Disconnect();
-                }else
-                if (args[0].ToLower() == "reload" || args[0].ToLower() == "r")
-                {
-                    mod.Unload();
-                    mod.Load();
-                    caller.Reply("Reloading mod....");
-                }else
-                if (args[0].ToLower() == "settings" || args[0].ToLower() == "s")
-                {
-                    mod.Storage.OpenFileExternally(mod.Storage.GetFullPath("Twitch.ini"));
+                    case "c":
+                    case "connect":
+                        if (Mod.OldConfig.Get<string>(TwitchCfg.OAToken) != "https://twitchapps.com/tmi/"
+                            && Mod.OldConfig.Get<string>(TwitchCfg.Username) != "missingno")
+                        {
+                            Mod.Irc.Username = Mod.OldConfig.Get<string>(TwitchCfg.Username);
+                            Mod.Irc.AuthToken = Mod.OldConfig.Get<string>(TwitchCfg.OAToken);
+                            Mod.Irc.Connect();
+                        }
+                        else
+                        {
+                            caller.Reply("You missed username or token in settings. Type /t s to open settings file and /t r to reload mod");
+                        }
+
+                        break;
+                    case "dc":
+                    case "disconnect":
+                        Mod.Irc.Disconnect();
+                        break;
+                    case "r":
+                    case "reload":
+                        Mod.Unload();
+                        Mod.Load();
+                        caller.Reply("Reloading mod....");
+                        break;
+                    case "s":
+                    case "settings":
+                        Mod.Storage.OpenFileExternally(Mod.Storage.GetFullPath("Twitch.ini"));
+                        break;
+                    case "o":
+                    case "open":
+                        Mod.Storage.OpenInNativeExplorer();
+                        break;
+                    case "m":
+                    case "message":
+                        var a = new List<string>();
+                        for (var i = 1; i < args.Length; i++)
+                            a.Add(args[i]);
+                        var text = string.Join(" ", a);
+
+                        TwitchChat.Send(text);
+
+                        caller.Reply($"[c/{TwitchChat.TwitchColor}:<-- To Twitch:] {text}");
+                        break;
+                    default:
+                        caller.Reply(Usage);
+                        return;
                 }
-                else
-                if (args[0].ToLower() == "open" || args[0].ToLower() == "o")
-                {
-                    mod.Storage.OpenInNativeExplorer();
-                }else
-                if(args[0].ToLower() == "message" || args[0].ToLower() == "msg" || args[0].ToLower() == "m")
-                {
-                    var a = new List<string>();
-                    for (int i = 1; i < args.Length; i++)
-                        a.Add(args[i]);
-                    string text = string.Join(" ", a);
-
-                    TwitchChat.Send(text);
-
-                    caller.Reply($"[c/{TwitchChat.TwitchColor}:<-- To Twitch:] {text}");
-
-                }else
-                {
-                    caller.Reply(Usage);
-                }
-            }
             else
-            {
                 caller.Reply(Usage);
-            }
         }
     }
 }

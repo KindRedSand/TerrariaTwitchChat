@@ -1,9 +1,6 @@
-﻿using Microsoft.Xna.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ID;
 using Terraria.Utilities;
@@ -11,8 +8,12 @@ using TwitchChat.IRCClient;
 
 namespace TwitchChat.Events
 {
-    public class TwitchBossEvent : IWorldEvent
+    public class TwitchBossEvent : WorldEvent
     {
+        private readonly List<string> part = new List<string>();
+        private readonly WeightedRandom<string> rand = new WeightedRandom<string>();
+
+        private DateTimeOffset assignTime = DateTimeOffset.Now;
         public override int Cooldown { get; set; } = 1000;
 
         public override float Chance { get; set; } = 0.1f;
@@ -21,27 +22,17 @@ namespace TwitchChat.Events
 
         public override string StartString => "It's time to select new chat boss!";
 
-        public override string EndString => $"New boss now is... ";
-
-        private DateTimeOffset assignTime = DateTimeOffset.Now;
+        public override string EndString => "New boss now is... ";
 
         public override int Length => 60 * 30;
 
-        public override Func<bool> ChanceAction => () => 
+        public override Func<bool> ChanceAction => () =>
         {
-            if (TwitchChat.Instance.ChatBoss == string.Empty || TwitchChat.Instance.ChatBoss == null)
+            if (string.IsNullOrEmpty(TwitchChat.Instance.ChatBoss))
                 return true;
 
-            if(Main.rand.NextFloat() < (Chance *((DateTimeOffset.Now - assignTime).TotalMinutes * 0.15)))
-            {
-                return true;
-            }
-
-            return false;
+            return Main.rand.NextFloat() < Chance * ((DateTimeOffset.Now - assignTime).TotalMinutes * 0.15);
         };
-
-        private List<string> part = new List<string>();
-        private WeightedRandom<string> rand = new WeightedRandom<string>();
 
         protected override void OnStart()
         {
@@ -66,9 +57,9 @@ namespace TwitchChat.Events
 
             if (rand.elements.Count == 0)
             {
-                TwitchChat.Send("Noone was selected to become chat boss");
+                TwitchChat.Send("No one was selected to become chat boss");
                 TwitchChat.Instance.ChatBoss = TwitchChat.Instance.Username;
-                TwitchChat.Post("Noone...", Color.White);
+                TwitchChat.Post("No one...", Color.White);
                 return;
             }
 
@@ -87,12 +78,11 @@ namespace TwitchChat.Events
 
         private void Handle(ChannelMessageEventArgs msg)
         {
-            if(!part.Contains(msg.From))
+            if (!part.Contains(msg.From))
             {
                 part.Add(msg.From);
                 rand.Add(msg.From, msg.Badge.sub ? 2 : 1);
             }
         }
-
     }
 }

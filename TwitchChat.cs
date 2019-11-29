@@ -99,7 +99,7 @@ namespace TwitchChat
         internal WebClient Web { get; set; } = new WebClient();
         internal ResourceStore<byte[]> Store { get; private set; }
         internal Texture2DStore Textures { get; private set; }
-        public static List<IWorldEvent> EventsPool { get; private set; } = new List<IWorldEvent>();
+        public static List<WorldEvent> EventsPool { get; private set; } = new List<WorldEvent>();
 
         internal static TwitchChat Instance { get; private set; }
 
@@ -175,7 +175,7 @@ namespace TwitchChat
 
             BossCommands = new Dictionary<string, Action>();
 
-            EventsPool = new List<IWorldEvent>();
+            EventsPool = new List<WorldEvent>();
 
             LastStatus.Value = $"[c/{TwitchColor}: Client not connected]";
 
@@ -235,14 +235,14 @@ namespace TwitchChat
                             foreach (Player it in Main.player)
                             {
                                 if (it.active)
-                                    for (int i = rand.Next(20); i > 0; i--)
+                                    for (var i = rand.Next(20); i > 0; i--)
                                     {
                                         Item.NewItem(it.position, ItemID.Heart, noGrabDelay: true);
                                         Item.NewItem(it.position, ItemID.Star, noGrabDelay: true);
                                     }
                             }
                         else
-                            for (int i = rand.Next(20); i > 0; i--)
+                            for (var i = rand.Next(20); i > 0; i--)
                             {
                                 Item.NewItem(Main.LocalPlayer.position, ItemID.Heart, noGrabDelay: true);
                                 Item.NewItem(Main.LocalPlayer.position, ItemID.Star, noGrabDelay: true);
@@ -256,21 +256,21 @@ namespace TwitchChat
                             foreach (Player it in Main.player)
                                 if (it.active)
                                 {
-                                    for (int i = rand.Next(3); i > 0; i--)
+                                    for (var i = rand.Next(3); i > 0; i--)
                                         Item.NewItem(it.position, ItemID.NebulaPickup1, noGrabDelay: true);
-                                    for (int i = rand.Next(3); i > 0; i--)
+                                    for (var i = rand.Next(3); i > 0; i--)
                                         Item.NewItem(it.position, ItemID.NebulaPickup2, noGrabDelay: true);
-                                    for (int i = rand.Next(3); i > 0; i--)
+                                    for (var i = rand.Next(3); i > 0; i--)
                                         Item.NewItem(it.position, ItemID.NebulaPickup3, noGrabDelay: true);
                                 }
                         }
                         else
                         {
-                            for (int i = rand.Next(3); i > 0; i--)
+                            for (var i = rand.Next(3); i > 0; i--)
                                 Item.NewItem(Main.LocalPlayer.position, ItemID.NebulaPickup1, noGrabDelay: true);
-                            for (int i = rand.Next(3); i > 0; i--)
+                            for (var i = rand.Next(3); i > 0; i--)
                                 Item.NewItem(Main.LocalPlayer.position, ItemID.NebulaPickup2, noGrabDelay: true);
-                            for (int i = rand.Next(3); i > 0; i--)
+                            for (var i = rand.Next(3); i > 0; i--)
                                 Item.NewItem(Main.LocalPlayer.position, ItemID.NebulaPickup3, noGrabDelay: true);
                         }
                     });
@@ -281,12 +281,12 @@ namespace TwitchChat
                             foreach (Player it in Main.player)
                             {
                                 if (it.active)
-                                    for (int i = rand.Next(20); i > 0; i--)
+                                    for (var i = rand.Next(20); i > 0; i--)
                                         Projectile.NewProjectile(it.position, new Vector2(0, 3), ProjectileID.EyeFire,
                                             400, 0);
                             }
                         else
-                            for (int i = rand.Next(20); i > 0; i--)
+                            for (var i = rand.Next(20); i > 0; i--)
                                 Projectile.NewProjectile(Main.LocalPlayer.position, new Vector2(0, 3),
                                     ProjectileID.EyeFire, 400, 0);
                     });
@@ -303,12 +303,12 @@ namespace TwitchChat
                 foreach (Mod mod in ModLoader.Mods)
                 foreach (TypeInfo it in mod.GetType().Assembly.DefinedTypes)
                     if (!it.IsAbstract && (
-                            it.BaseType != typeof(object) && it.BaseType == typeof(IWorldEvent) ||
-                            it.BaseType?.BaseType != typeof(object) && it.BaseType?.BaseType == typeof(IWorldEvent))
-                    ) //In case if IWorldEvent is second parent
+                            it.BaseType != typeof(object) && it.BaseType == typeof(WorldEvent) ||
+                            it.BaseType?.BaseType != typeof(object) && it.BaseType?.BaseType == typeof(WorldEvent))
+                    ) //In case if WorldEvent is second parent
                         try
                         {
-                            EventsPool.Add((IWorldEvent) Activator.CreateInstance(it));
+                            EventsPool.Add((WorldEvent) Activator.CreateInstance(it));
                         }
                         catch (Exception e)
                         {
@@ -378,11 +378,11 @@ namespace TwitchChat
                             return;
                     }
 
-                    string result = e.Message;
+                    var result = e.Message;
 
                     var parsed = new List<SEmote>();
 
-                    foreach (string it in e.Badge.emotes)
+                    foreach (var it in e.Badge.emotes)
                     {
                         if (it == string.Empty)
                             break;
@@ -402,7 +402,7 @@ namespace TwitchChat
                         {
                             if (list.ContainsKey(it.Emote))
                                 continue;
-                            string st = e.Message.Substring(it.Start, it.End - it.Start + 1);
+                            var st = e.Message.Substring(it.Start, it.End - it.Start + 1);
 
                             //Not perfect because if Kappa mentioned in msg KappaPride get broken,
                             //but it way faster what per glyph concat 
@@ -421,7 +421,7 @@ namespace TwitchChat
                     }
 
 
-                    string prefix = "";
+                    var prefix = "";
                     if (e.Badge.sub) prefix += $"[i:{ItemID.Star}] ";
                     if (e.Badge.mod) prefix += $"[i:{ItemID.Arkhalis}]";
 
@@ -444,7 +444,7 @@ namespace TwitchChat
                         return;
 
 
-                    string word = e.Message.ToLower().Split(' ').First();
+                    var word = e.Message.ToLower().Split(' ').First();
 
                     if (CurrentPool?.ContainsKey(word) ?? false)
                     {
@@ -485,17 +485,17 @@ namespace TwitchChat
             var r = new WeightedRandom<string>();
             IEnumerable<string> l = RecentChatters.Except(w.UsedNicks);
 
-            foreach (string it in l)
+            foreach (var it in l)
                 r.Add(it);
 
             //Then select random nick
-            string username = r.Get();
+            var username = r.Get();
 
             if (username == string.Empty)
                 return v;
 
             //Go through shadow array
-            for (int i = 0; i < Main.maxNPCs; i++)
+            for (var i = 0; i < Main.maxNPCs; i++)
                 //If this is active town npc and has different typeID what this slot has before
                 if (Main.npc[i].active && Main.npc[i].townNPC && ShadowNpc[i] != Main.npc[i].type)
                 {
@@ -510,7 +510,7 @@ namespace TwitchChat
                 }
 
             //Update shadow array
-            for (int i = 0; i < Main.npc.Length; i++) ShadowNpc[i] = Main.npc[i].type;
+            for (var i = 0; i < Main.npc.Length; i++) ShadowNpc[i] = Main.npc[i].type;
 
             return v;
         }
@@ -583,8 +583,8 @@ namespace TwitchChat
 
             if (type == NetPacketType.EventWasStarted)
             {
-                string name = reader.ReadString();
-                foreach (IWorldEvent it in EventsPool)
+                var name = reader.ReadString();
+                foreach (WorldEvent it in EventsPool)
                     if (it.GetType().Name == name)
                     {
                         ModContent.GetInstance<EventWorld>().StartWorldEvent(it);
@@ -609,7 +609,7 @@ namespace TwitchChat
             }
             else if (type == NetPacketType.EventWaveUpdated)
             {
-                string name = reader.ReadString();
+                var name = reader.ReadString();
                 if (ModContent.GetInstance<EventWorld>().CurrentEvent == null ||
                     ModContent.GetInstance<EventWorld>().CurrentEvent.GetType().Name != name)
                 {
@@ -625,7 +625,7 @@ namespace TwitchChat
                     }
 
 
-                    foreach (IWorldEvent it in EventsPool)
+                    foreach (WorldEvent it in EventsPool)
                         if (it.GetType().Name == name)
                         {
                             ModContent.GetInstance<EventWorld>().StartWorldEvent(it);
@@ -653,7 +653,7 @@ namespace TwitchChat
             }
             else if (type == NetPacketType.EventEnded)
             {
-                string name = reader.ReadString();
+                var name = reader.ReadString();
                 if (ModContent.GetInstance<EventWorld>().CurrentEvent == null ||
                     ModContent.GetInstance<EventWorld>().CurrentEvent.GetType().Name != name)
                 {
@@ -685,7 +685,7 @@ namespace TwitchChat
 
                 #endregion
 
-                string eve = reader.ReadString();
+                var eve = reader.ReadString();
                 if (eve == lunarSky)
                 {
                     LunarSkies t = (LunarSkies) reader.ReadByte();
@@ -693,7 +693,7 @@ namespace TwitchChat
                 }
                 else if (eve == netSendFix)
                 {
-                    bool b = reader.ReadBoolean();
+                    var b = reader.ReadBoolean();
                     if (b)
                     {
                         ModPacket p = GetPacket();
@@ -727,14 +727,14 @@ namespace TwitchChat
                 Emote = int.Parse(em);
             }
 
-            public SEmote(int s, int e, int em)
-            {
-                Start = s;
-                End = e;
-                Emote = em;
-            }
+            //public SEmote(int s, int e, int em)
+            //{
+            //    Start = s;
+            //    End = e;
+            //    Emote = em;
+            //}
 
-            public int CompareTo(object obj) { return Start.CompareTo(obj); }
+            //public int CompareTo(object obj) { return Start.CompareTo(obj); }
         }
 
         #endregion

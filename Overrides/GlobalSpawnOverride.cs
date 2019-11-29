@@ -1,122 +1,110 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
-using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.Utilities;
-using TwitchChat.Events;
 
 namespace TwitchChat.Overrides
 {
     public class GlobalSpawnOverride : GlobalNPC
     {
-        private static bool isOverriding = false;
-        public static bool IsOverrdie => isOverriding;
-        private static float spawnRateOverride = 0, maxSpawnsOverride = 0;
+        private static float spawnRateOverride, maxSpawnsOverride;
+
+        private static bool useTuple;
+        private static bool enchanceLifetime;
+
+        public static bool IsOverrdie { get; private set; }
+
+        public static bool IsSpawnpoolOverrided { get; private set; }
+
+        public static IDictionary<int, float> SpawnPool { get; private set; }
+
+        private static bool IsDisableOtherSpawns { get; set; }
+
+        public static IDictionary<int, Tuple<float, int>> InvasionList { get; private set; }
+
+        public static bool IsItemPoolOverrided { get; private set; }
+
+        public static IDictionary<int, float> ItemPool { get; private set; }
 
         public static void StartOverrideSpawnRate(float spawnrate, float maxSpawns)
         {
-            isOverriding = true;
+            IsOverrdie = true;
             spawnRateOverride = spawnrate;
             maxSpawnsOverride = maxSpawns;
         }
 
-        public static void EndOverride() => isOverriding = false;
+        public static void EndOverride() { IsOverrdie = false; }
 
         public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns)
         {
-         
-
-            if (isOverriding)
+            if (IsOverrdie)
             {
-                spawnRate = (int)Math.Floor(spawnRate/spawnRateOverride);
-                maxSpawns = (int)Math.Floor(maxSpawnsOverride * maxSpawns);
-            }else
+                spawnRate = (int) Math.Floor(spawnRate / spawnRateOverride);
+                maxSpawns = (int) Math.Floor(maxSpawnsOverride * maxSpawns);
+            }
+            else
+            {
                 base.EditSpawnRate(player, ref spawnRate, ref maxSpawns);
+            }
         }
-
-        private static bool SpawnPoolOverride = false;
-        private static bool useTuple = false;
-        public static bool IsSpawnpoolOverrided => SpawnPoolOverride;
-        private static IDictionary<int, float> spawnPool = null;
-        public static IDictionary<int, float> SpawnPool => spawnPool;
-        private static bool DisableOtherSpawn = false;
-        private static bool IsDisableOtherSpawns => DisableOtherSpawn;
-        private static bool enchanceLifetime = false;
-
-        private static IDictionary<int, Tuple<float, int>> invasionTuple = null;
-        public static IDictionary<int, Tuple<float, int>> InvasionList => invasionTuple;
 
         public static void OverridePool(IDictionary<int, Tuple<float, int>> pool, bool disableOthers, bool enchanceLifetime = false)
         {
-            invasionTuple = pool;
-            DisableOtherSpawn = disableOthers;
-            SpawnPoolOverride = true;
+            InvasionList = pool;
+            IsDisableOtherSpawns = disableOthers;
+            IsSpawnpoolOverrided = true;
             useTuple = true;
         }
 
         public static void OverridePool(IDictionary<int, float> pool, bool disableOthers, bool enchanceLifetime = false)
         {
-            spawnPool = pool;
-            DisableOtherSpawn = disableOthers;
-            SpawnPoolOverride = true;
+            SpawnPool = pool;
+            IsDisableOtherSpawns = disableOthers;
+            IsSpawnpoolOverrided = true;
             useTuple = false;
         }
 
-        private static bool ItempoolOverride = false;
-        public static bool IsItemPoolOverrided => ItempoolOverride;
-        private static IDictionary<int, float> itemPool = null;
-        public static IDictionary<int, float> ItemPool => itemPool;
         public static void OverrideItemPool(IDictionary<int, float> pool)
         {
-            itemPool = pool;
-            ItempoolOverride = true;
+            ItemPool = pool;
+            IsItemPoolOverrided = true;
         }
 
-        public static void DisableItemPool() => ItempoolOverride = false;
+        public static void DisableItemPool() { IsItemPoolOverrided = false; }
 
-        public static void DisablePoolOverride() { SpawnPoolOverride = false; enchanceLifetime = false; useTuple = false; DisableOtherSpawn = false; }
+        public static void DisablePoolOverride()
+        {
+            IsSpawnpoolOverrided = false;
+            enchanceLifetime = false;
+            useTuple = false;
+            IsDisableOtherSpawns = false;
+        }
 
         public override void PostAI(NPC npc)
         {
             if (Main.netMode == 1)
                 return;
             //Changes NPCs so they do not despawn when invasion up and invasion at spawn
-            if (enchanceLifetime)
-            {
-                npc.timeLeft = 1000;
-            }
+            if (enchanceLifetime) npc.timeLeft = 1000;
         }
 
         public override void NPCLoot(NPC npc)
         {
-            var world = ModContent.GetInstance<EventWorld>();
+            EventWorld world = ModContent.GetInstance<EventWorld>();
 
             if (useTuple)
-            {
-                if (invasionTuple.ContainsKey(npc.type))
-                {
-                    world.CurrentEvent.TimeLeft -= invasionTuple[npc.type].Item2;
-                }
-            }
+                if (InvasionList.ContainsKey(npc.type))
+                    world.CurrentEvent.TimeLeft -= InvasionList[npc.type].Item2;
 
             if (Main.netMode == 1)
                 return;
 
-            if (ItempoolOverride && ItemPool != null)
+            if (IsItemPoolOverrided && ItemPool != null)
             {
                 var rand = new WeightedRandom<int>();
-                foreach(var it in ItemPool)
-                {
-                    rand.Add(it.Key, it.Value);
-                }
-                if (rand.random.NextFloat(100)>55)
-                {
-                    Item.NewItem(npc.position, npc.Size, rand.Get());
-                }
+                foreach (KeyValuePair<int, float> it in ItemPool) rand.Add(it.Key, it.Value);
+                if (rand.random.NextFloat(100) > 55) Item.NewItem(npc.position, npc.Size, rand.Get());
             }
         }
 
@@ -125,55 +113,37 @@ namespace TwitchChat.Overrides
             if (Main.netMode == 1)
                 return;
 
-            if (!SpawnPoolOverride)
+            if (!IsSpawnpoolOverrided)
                 return;
 
-            if (DisableOtherSpawn)
-            {
-                if (!useTuple && spawnPool != null || useTuple && invasionTuple != null)
-                {
+            if (IsDisableOtherSpawns)
+                if (!useTuple && SpawnPool != null || useTuple && InvasionList != null)
                     pool.Clear();
-                }
-            }
             {
-                if(!useTuple)
-                foreach(var it in spawnPool)
-                {
-                    if (pool.ContainsKey(it.Key))
-                    {
-                        pool[it.Key] = it.Value;
-                    }
-                    else
-                    {
-                        pool.Add(it.Key, it.Value);
-                    }
-                }
-                else
-                {
-                    foreach(var it in invasionTuple)
-                    {
+                if (!useTuple)
+                    foreach (KeyValuePair<int, float> it in SpawnPool)
                         if (pool.ContainsKey(it.Key))
-                        {
-                            pool[it.Key] = it.Value.Item1;
-                        }
+                            pool[it.Key] = it.Value;
                         else
-                        {
+                            pool.Add(it.Key, it.Value);
+                else
+                    foreach (KeyValuePair<int, Tuple<float, int>> it in InvasionList)
+                        if (pool.ContainsKey(it.Key))
+                            pool[it.Key] = it.Value.Item1;
+                        else
                             pool.Add(it.Key, it.Value.Item1);
-                        }
-                    }
-                }
             }
         }
 
 
         internal static void HandleCleanup()
         {
-            spawnPool = null;
-            itemPool = null;
-            invasionTuple = null;
-            ItempoolOverride = false;
-            isOverriding = false;
-            SpawnPoolOverride = false;
+            SpawnPool = null;
+            ItemPool = null;
+            InvasionList = null;
+            IsItemPoolOverrided = false;
+            IsOverrdie = false;
+            IsSpawnpoolOverrided = false;
         }
     }
 }

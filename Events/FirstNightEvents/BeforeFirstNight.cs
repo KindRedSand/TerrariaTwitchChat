@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
-using Terraria.Utilities;
 using TwitchChat.IRCClient;
 
 namespace TwitchChat.Events.FirstNightEvents
 {
-    public class BeforeFirstNight : IVoteEvent
+    public class BeforeFirstNight : VoteEvent
     {
-        public static Dictionary<string, int> StandardVotes = new Dictionary<string, int>();
-
         public override int Cooldown { get; set; } = 100;
 
         public override float Chance { get; set; } = 0.9f;
@@ -27,10 +24,11 @@ namespace TwitchChat.Events.FirstNightEvents
         public override string Description => "How should the first night go? eye -> Eye of Cthulhu at beginning, peace -> no mobs during first nigh, mine -> spelunker potion effect during this night";
 
         public override Dictionary<string, Action<ChannelMessageEventArgs>> VoteSuggestion { get; } =
-            new Dictionary<string, Action<ChannelMessageEventArgs>>()
+            new Dictionary<string, Action<ChannelMessageEventArgs>>
             {
-                ["eye"] = (m) => {
-                    var world = ModContent.GetInstance<EventWorld>();
+                ["eye"] = m =>
+                {
+                    EventWorld world = ModContent.GetInstance<EventWorld>();
 
                     ModContent.GetInstance<TwitchWorld>().FirstNight = true;
 
@@ -38,26 +36,28 @@ namespace TwitchChat.Events.FirstNightEvents
                     world.WorldScheduler.AddDelayed(
                         () =>
                         {
-                            NPC.NewNPC((int)Main.player[0].position.X, (int)Main.player[0].position.Y + 400,
+                            NPC.NewNPC((int) Main.player[0].position.X, (int) Main.player[0].position.Y + 400,
                                 NPCID.EyeofCthulhu);
                         }, 500);
                 },
-                ["peace"] = (m) => {
-                    var world = ModContent.GetInstance<EventWorld>();
+                ["peace"] = m =>
+                {
+                    EventWorld world = ModContent.GetInstance<EventWorld>();
 
                     ModContent.GetInstance<TwitchWorld>().FirstNight = true;
 
                     TwitchChat.Send("Night without enemy, have a chill time");
                     world.WorldScheduler.Add(() => { world.StartWorldEvent(new PeaceEvent()); });
                 },
-                ["mine"] = (m) => {
-                    var world = ModContent.GetInstance<EventWorld>();
+                ["mine"] = m =>
+                {
+                    EventWorld world = ModContent.GetInstance<EventWorld>();
 
                     ModContent.GetInstance<TwitchWorld>().FirstNight = true;
 
                     TwitchChat.Send("Mining time!");
                     world.WorldScheduler.Add(() => { world.StartWorldEvent(new SpelunkerEvent()); });
-                },
+                }
             };
 
         public override VoteMode VoteMode => VoteMode.EndAction;
@@ -68,7 +68,7 @@ namespace TwitchChat.Events.FirstNightEvents
         }
 
 
-        public class PeaceEvent : IWorldEvent
+        public class PeaceEvent : WorldEvent
         {
             public override int Cooldown { get; set; } = 0;
 
@@ -97,7 +97,7 @@ namespace TwitchChat.Events.FirstNightEvents
             public override bool DisableOthers => true;
         }
 
-        public class SpelunkerEvent : IWorldEvent
+        public class SpelunkerEvent : WorldEvent
         {
             public override int Cooldown { get; set; } = 0;
 
@@ -113,7 +113,7 @@ namespace TwitchChat.Events.FirstNightEvents
 
             protected override void OnTick()
             {
-                foreach (var it in Main.player)
+                foreach (Player it in Main.player)
                     if (it.active)
                         if (!it.HasBuff(BuffID.Spelunker))
                             it.AddBuff(BuffID.Spelunker, 5000);

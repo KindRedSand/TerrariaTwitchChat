@@ -1,8 +1,9 @@
-﻿using Microsoft.Xna.Framework;
-using Razorwing.Framework.Threading;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Microsoft.Xna.Framework;
+using Razorwing.Framework.Threading;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -14,9 +15,18 @@ namespace TwitchChat
 {
     public class EventWorld : ModWorld
     {
+        public WorldEvent CurrentEvent;
+
+        private bool lastDayState;
+
+        private int pucd = 1500;
+        public Scheduler RealtimeScheduler;
+
+        internal Action<bool> TickUpdate;
+        public Scheduler WorldScheduler;
+
         public override TagCompound Save()
         {
-            
             //Save events cooldown
             TagCompound tags = new TagCompound();
             try
@@ -25,22 +35,19 @@ namespace TwitchChat
                 //{
                 //    cooldowns.Add(it.Key.GetType().Name, it.Value);
                 //}
-                foreach(var it in TwitchChat.EventsPool)
-                {
-                    tags.Add($"Event.Cooldown.{it.GetType()}", it.Cd);
-                }
+                foreach (WorldEvent it in TwitchChat.EventsPool) tags.Add($"Event.Cooldown.{it.GetType()}", it.Cd);
             }
             catch (Exception e)
             {
-                ErrorLogger.Log($"Exception caughted in {nameof(Load)} when saving events cooldowns:\n" +
-                    $"{e.Message}\n" +
-                    $"{e.StackTrace}\n");
+                mod.Logger.Error($"Exception caught in {nameof(Load)} when saving events cooldown:\n" +
+                                 $"{e.Message}\n" +
+                                 $"{e.StackTrace}\n");
             }
             //return new TagCompound()
             //{
             //    ["EventCooldows"] = cooldowns,
             //};
-            
+
             return tags;
         }
 
@@ -50,13 +57,13 @@ namespace TwitchChat
 
             if (CurrentEvent != null)
             {
-                CurrentEvent.EventEnd(this, (TwitchChat)mod);
+                CurrentEvent.EventEnd(this, (TwitchChat) mod);
                 CurrentEvent = null;
             }
 
             TickUpdate?.Invoke(false);
             //Build new Scheduler based on main thread with clock based on world ticks (kind'a'like we root to game time instead real time schedule)
-            WorldScheduler = new Scheduler(Thread.CurrentThread, new GameTickClock(this, true));
+            WorldScheduler = new Scheduler(Thread.CurrentThread, new GameTickClock(this));
 
             RealtimeScheduler = new Scheduler(Thread.CurrentThread);
 
@@ -65,86 +72,76 @@ namespace TwitchChat
             if (ModLoader.version < new Version(0, 11, 4))
                 if (Main.netMode == NetmodeID.MultiplayerClient && mod.IsNetSynced)
                 {
-                    var p = mod.GetPacket();
-                    p.Write((byte)TwitchChat.NetPacketType.Custom);
+                    ModPacket p = mod.GetPacket();
+                    p.Write((byte) TwitchChat.NetPacketType.Custom);
                     p.Write("NetSend");
                     p.Write(true);
                     p.Send(256);
                 }
         }
 
-        
+
         public override void Load(TagCompound tag)
         {
             if (tag != null && tag.ContainsKey("EventCooldows"))
-            {
                 try
                 {
                     //var arr = tag.Get<Dictionary<string, int>>("EventCooldows");
 
                     //I know it is shit, very slow shit, but it is terraria what you want? The whole terraria code is shit so shut up
-                    foreach(var it in TwitchChat.EventsPool)
-                    {
-                        foreach(var tg in tag)
-                        {
-                            if (tg.Key == $"Event.Cooldown.{it.GetType()}")
-                                it.Cd = (int)tg.Value;
-                        }
-                    }
-                }catch (Exception e)
+                    foreach (WorldEvent it in TwitchChat.EventsPool)
+                    foreach (KeyValuePair<string, object> tg in tag)
+                        if (tg.Key == $"Event.Cooldown.{it.GetType()}")
+                            it.Cd = (int) tg.Value;
+                }
+                catch (Exception e)
                 {
                     mod.Logger.Error($"Exception caughted in {nameof(Load)} when reading events cooldown:\n" +
-                        $"{e.Message}\n" +
-                        $"{e.StackTrace}\n");
+                                     $"{e.Message}\n" +
+                                     $"{e.StackTrace}\n");
                 }
-
-            }
         }
 
-        public IWorldEvent CurrentEvent = null;
-
-        private bool lastDayState = false;
-
-        public void StartWorldEvent(IWorldEvent ev)
+        public void StartWorldEvent(WorldEvent ev)
         {
             try
             {
                 if (Main.invasionType > 0 || Main.bloodMoon || Main.eclipse || Main.slimeRain)
                     return;
-                if (CurrentEvent != null)
-                    CurrentEvent.EventEnd(this, (TwitchChat)mod);
+                CurrentEvent?.EventEnd(this, (TwitchChat) mod);
                 CurrentEvent = ev;
                 ev.Cd = ev.Cooldown;
                 if (!ev.UseWarning || ev.StartDelay == 0)
-                    CurrentEvent?.EventStart(this, (TwitchChat)mod);
+                {
+                    CurrentEvent?.EventStart(this, (TwitchChat) mod);
+                }
                 else
                 {
-                    
                     TwitchChat.Post(ev.Warning, ev.WarnColor);
 
                     WorldScheduler.AddDelayed(() =>
                     {
-                        CurrentEvent?.EventStart(this, (TwitchChat)mod);//We need to check couse we can get null for now
+                        CurrentEvent?.EventStart(this, (TwitchChat) mod); //We need to check because we can get null for now
                     }, ev.StartDelay);
                 }
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
-                ErrorLogger.Log($"Warning! Exception caughted in {nameof(StartWorldEvent)} ! Report mod author with stacktrace:\n" +
-                    $"{e.Message}\n" +
-                    $"{e.StackTrace}\n");
+                mod.Logger.Error($"Warning! Exception caught in {nameof(StartWorldEvent)} ! Report mod author with stacktrace:\n" +
+                                 $"{e.Message}\n" +
+                                 $"{e.StackTrace}\n");
                 //If we executing it as command, rethrow if
                 //if (e.StackTrace.Contains(typeof(StartEventCommand).Name))
                 //{
                 //    throw e;
                 //}
             }
-
         }
 
-        ~EventWorld()
-        {
-            //CurrentEvent.EventEnd(this, (TwitchChat)mod);
-        }
+        //~EventWorld()
+        //{
+        //    //CurrentEvent.EventEnd(this, (TwitchChat)mod);
+        //}
 
         public override void NetSend(BinaryWriter writer)
         {
@@ -153,7 +150,7 @@ namespace TwitchChat
             if (ModLoader.version < new Version(0, 11, 4))
                 return;
 
-            this.WriteNetSendData(writer);
+            WriteNetSendData(writer);
         }
 
         internal void WriteNetSendData(BinaryWriter writer)
@@ -165,7 +162,9 @@ namespace TwitchChat
                 CurrentEvent.WriteWaveData(ref writer);
             }
             else
+            {
                 writer.Write(false);
+            }
         }
 
         public override void NetReceive(BinaryReader reader)
@@ -174,9 +173,8 @@ namespace TwitchChat
             if (reader.ReadBoolean())
             {
                 var st = reader.ReadString();
-                
-                foreach(var it in TwitchChat.EventsPool)
-                {
+
+                foreach (WorldEvent it in TwitchChat.EventsPool)
                     if (it.GetType().Name == st)
                     {
                         StartWorldEvent(it);
@@ -190,21 +188,13 @@ namespace TwitchChat
                             Main.invasionX = reader.ReadDouble();
                             Main.invasionProgress = reader.ReadInt32();
                         }
+
                         break;
                     }
-                }
-                if (CurrentEvent == null)
-                {
-                    Main.NewTextMultiline($"You use outdated version of mod, were {st} event not registered!", c: Color.Red);
-                }
+
+                if (CurrentEvent == null) Main.NewTextMultiline($"You use outdated version of mod, were {st} event not registered!", c: Color.Red);
             }
         }
-
-        internal Action<bool> TickUpdate;
-        public Scheduler WorldScheduler;
-        public Scheduler RealtimeScheduler;
-
-        private int pucd = 1500;
 
         public override void PostUpdate()
         {
@@ -222,13 +212,12 @@ namespace TwitchChat
 
             try
             {
-
                 //CurrentEvent?.PerformTick(this, (TwitchChat)mod);
 
-                if (Main.netMode != 1 && (CurrentEvent == null && TwitchChat.Instance.Fun && (pucd <= 0 || Main.dayTime != lastDayState)))
+                if (Main.netMode != 1 && CurrentEvent == null && TwitchChat.Instance.Fun && (pucd <= 0 || Main.dayTime != lastDayState))
                 {
                     pucd = 1500;
-                    foreach (var ev in TwitchChat.EventsPool)
+                    foreach (WorldEvent ev in TwitchChat.EventsPool)
                     {
                         //Decrease one tick
                         ev.Cd -= pucd;
@@ -236,13 +225,12 @@ namespace TwitchChat
                             ev.Cd = 0;
                         else continue;
 
-                        if (lastDayState != Main.dayTime && Main.time < 30)//If day tranfer to night or rev.  Main.time < 30 to not to trigger in midnight when join world
+                        if (lastDayState != Main.dayTime && Main.time < 30) //If day transfer to night or rev.  Main.time < 30 to not to trigger in midnight when join world
                         {
                             if (ev.Condition.HasFlag(TriggerCondition.SwitchTriggered))
-                            {
-                                if (ev.IsDayStateValid && (ev.ConditionAction != null ? ev.ConditionAction.Invoke() : true))
+                                if (ev.IsDayStateValid && (ev.ConditionAction?.Invoke() ?? true))
                                 {
-                                    if (ev.ChanceAction != null)//In case event has own start logic
+                                    if (ev.ChanceAction != null) //In case event has own start logic
                                     {
                                         if (ev.ChanceAction.Invoke())
                                         {
@@ -250,21 +238,18 @@ namespace TwitchChat
                                             break;
                                         }
                                     }
-                                    else
-                                    if (Main.rand.Next(1000) > (1000 - (1000 * ev.Chance)))
+                                    else if (Main.rand.Next(1000) > 1000 - 1000 * ev.Chance)
                                     {
                                         StartWorldEvent(ev);
                                         break;
                                     }
                                 }
-                            }
                         }
                         else if (!ev.Condition.HasFlag(TriggerCondition.SwitchTriggered))
                         {
-
-                            if (ev.IsDayStateValid && (ev.ConditionAction != null ? ev.ConditionAction.Invoke() : true))
+                            if (ev.IsDayStateValid && (ev.ConditionAction?.Invoke() ?? true))
                             {
-                                if (ev.ChanceAction != null)//In case event has own start logic
+                                if (ev.ChanceAction != null) //In case event has own start logic
                                 {
                                     if (ev.ChanceAction.Invoke())
                                     {
@@ -272,32 +257,31 @@ namespace TwitchChat
                                         break;
                                     }
                                 }
-                                else
-                                if (Main.rand.Next(1000) > (1000 - (1000 * ev.Chance)))
+                                else if (Main.rand.Next(1000) > 1000 - 1000 * ev.Chance)
                                 {
                                     StartWorldEvent(ev);
                                     break;
                                 }
                             }
                         }
+
                         ev.Cd = ev.ChanceCooldown;
                     }
-
                 }
                 else if (CurrentEvent != null && CurrentEvent.IsStarted)
                 {
                     if (CurrentEvent.Condition.HasFlag(TriggerCondition.SwitchTriggered) && CurrentEvent.Type != InvasionType.Invasion)
                     {
-                        if ((CurrentEvent.Condition.HasFlag(TriggerCondition.Day) || CurrentEvent.Condition.HasFlag(TriggerCondition.Night)))
+                        if (CurrentEvent.Condition.HasFlag(TriggerCondition.Day) || CurrentEvent.Condition.HasFlag(TriggerCondition.Night))
                         {
                             if (lastDayState != Main.dayTime)
                             {
-                                CurrentEvent.EventEnd(this, (TwitchChat)mod);
+                                CurrentEvent.EventEnd(this, (TwitchChat) mod);
                                 CurrentEvent = null;
                             }
                             else
                             {
-                                CurrentEvent.PerformTick(this, (TwitchChat)mod);
+                                CurrentEvent.PerformTick(this, (TwitchChat) mod);
                             }
                         }
                     }
@@ -307,26 +291,26 @@ namespace TwitchChat
                             CurrentEvent.TimeLeft -= 1;
                         if (CurrentEvent.TimeLeft <= 0 && CurrentEvent.Type != InvasionType.Invasion)
                         {
-                            CurrentEvent.EventEnd(this, (TwitchChat)mod);
+                            CurrentEvent.EventEnd(this, (TwitchChat) mod);
                             CurrentEvent = null;
                         }
                         else
                         {
-                            CurrentEvent.PerformTick(this, (TwitchChat)mod);
+                            CurrentEvent.PerformTick(this, (TwitchChat) mod);
                         }
                     }
                 }
+
                 //else if(CurrentEvent!=null && !CurrentEvent.IsStarted)
                 //{
                 //    CurrentEvent.EventEnd(this, (TwitchChat)mod);
                 //    CurrentEvent = null;
                 //}
-            }catch (Exception e)
-            {
-                ErrorLogger.Log($"Exception caught in event update! {e.Message}\n{e.StackTrace}\n");
             }
-           
-            
+            catch (Exception e)
+            {
+                mod.Logger.Error($"Exception caught in event update! {e.Message}\n{e.StackTrace}\n");
+            }
 
 
             lastDayState = Main.dayTime;

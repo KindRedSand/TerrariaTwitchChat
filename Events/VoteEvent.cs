@@ -7,20 +7,19 @@ using TwitchChat.IRCClient;
 
 namespace TwitchChat.Events
 {
-    public abstract class IVoteEvent : IWorldEvent
+    public abstract class VoteEvent : WorldEvent
     {
+        protected Dictionary<string, string> Votes = new Dictionary<string, string>();
 
         public abstract string Description { get; }
 
         /// <summary>
-        /// Return list of available votes.
-        /// <see cref="Action{ChannelMessageEventArgs}"/> will be called with argument if
-        /// <see cref="VoteMode"/> return <see cref="VoteMode.InstantAction"/>.
-        /// Otherwise it will be called without argument (it will be null")
+        ///     Return list of available votes.
+        ///     <see cref="Action{T}" /> will be called with argument if
+        ///     <see cref="VoteMode" /> return InstantAction.
+        ///     Otherwise it will be called without argument (it will be null")
         /// </summary>
         public abstract Dictionary<string, Action<ChannelMessageEventArgs>> VoteSuggestion { get; }
-
-        protected Dictionary<string, string> Votes = new Dictionary<string, string>();
 
         public abstract VoteMode VoteMode { get; }
 
@@ -33,7 +32,7 @@ namespace TwitchChat.Events
                 TwitchChat.Instance.Irc.ChannelMessage += CountVote;
 
                 var commands = "";
-                foreach (var it in VoteSuggestion)
+                foreach (KeyValuePair<string, Action<ChannelMessageEventArgs>> it in VoteSuggestion)
                     commands += it.Key + ", ";
                 commands = commands.Substring(0, commands.Length - 2);
                 TwitchChat.Send($"{Description}. Available commands: {commands}");
@@ -44,11 +43,11 @@ namespace TwitchChat.Events
         {
             TwitchChat.Instance.Irc.ChannelMessage -= CountVote;
 
-            if (VoteMode != VoteMode.EndAction|| Main.netMode == NetmodeID.MultiplayerClient)
+            if (VoteMode != VoteMode.EndAction || Main.netMode == NetmodeID.MultiplayerClient)
                 return;
 
             var votesCount = new SortedDictionary<string, int>();
-            foreach (var it in Votes)
+            foreach (KeyValuePair<string, string> it in Votes)
                 if (votesCount.ContainsKey(it.Value))
                     votesCount[it.Value]++;
                 else
@@ -56,7 +55,7 @@ namespace TwitchChat.Events
 
             var bigger = 0;
             string index = "", draftIndex = "";
-            foreach (var it in votesCount)
+            foreach (KeyValuePair<string, int> it in votesCount)
                 if (it.Value > bigger)
                 {
                     bigger = it.Value;
@@ -69,7 +68,6 @@ namespace TwitchChat.Events
                 }
 
 
-
             if (index == draftIndex && index != "")
             {
                 var rand = new WeightedRandom<string>();
@@ -78,21 +76,18 @@ namespace TwitchChat.Events
 
                 index = rand.Get();
             }
-            if(index != string.Empty)
+
+            if (index != string.Empty)
                 VoteSuggestion[index].Invoke(null);
             else
-            {
                 TwitchChat.Send("No votes...");
-            }
-
         }
 
         private void CountVote(object sender, ChannelMessageEventArgs m)
         {
             if (Votes.ContainsKey(m.From))
                 return;
-            foreach (var it in VoteSuggestion)
-            {
+            foreach (KeyValuePair<string, Action<ChannelMessageEventArgs>> it in VoteSuggestion)
                 if (m.Message.ToLower().StartsWith(it.Key.ToLower()))
                 {
                     Votes.Add(m.From, it.Key);
@@ -100,14 +95,12 @@ namespace TwitchChat.Events
                         it.Value.Invoke(m);
                     return;
                 }
-            }
         }
-
     }
 
     public enum VoteMode
     {
         InstantAction,
-        EndAction,
+        EndAction
     }
 }

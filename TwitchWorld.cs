@@ -53,6 +53,9 @@ namespace TwitchChat
                 TwitchChat.Text(((TwitchChat) mod).LastStatus);
                 statePrinted = true;
             }
+
+            if (TwitchChat.Instance.Fun &&Main.rand.Next(255) > 80)
+                TwitchBoss.ShatterBoss();
         }
     }
 }

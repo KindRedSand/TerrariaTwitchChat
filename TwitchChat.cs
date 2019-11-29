@@ -53,11 +53,9 @@ namespace TwitchChat
         private readonly UnifiedRandom rand = new UnifiedRandom();
         public Dictionary<string, Action> BossCommands = new Dictionary<string, Action>();
 
-        private DateTimeOffset bossCooldown = DateTimeOffset.Now;
+        //private DateTimeOffset bossCooldown = DateTimeOffset.Now;
 
-        public string ChatBoss = "";
 
-        public Dictionary<string, Action<ChannelMessageEventArgs>> CurrentPool = null;
         public bool Fun;
         private bool inRestoringState;
 
@@ -229,73 +227,7 @@ namespace TwitchChat
                 //Since it not work on server (Not affect clients) until i write packets for this Twitch boss is disabled for server
                 if (Main.netMode == NetmodeID.Server || Main.netMode == NetmodeID.SinglePlayer)
                 {
-                    BossCommands.Add("heal", () =>
-                    {
-                        if (Main.netMode != NetmodeID.SinglePlayer)
-                            foreach (Player it in Main.player)
-                            {
-                                if (it.active)
-                                    for (var i = rand.Next(20); i > 0; i--)
-                                    {
-                                        Item.NewItem(it.position, ItemID.Heart, noGrabDelay: true);
-                                        Item.NewItem(it.position, ItemID.Star, noGrabDelay: true);
-                                    }
-                            }
-                        else
-                            for (var i = rand.Next(20); i > 0; i--)
-                            {
-                                Item.NewItem(Main.LocalPlayer.position, ItemID.Heart, noGrabDelay: true);
-                                Item.NewItem(Main.LocalPlayer.position, ItemID.Star, noGrabDelay: true);
-                            }
-                    });
-
-                    BossCommands.Add("buff", () =>
-                    {
-                        if (Main.netMode != NetmodeID.SinglePlayer)
-                        {
-                            foreach (Player it in Main.player)
-                                if (it.active)
-                                {
-                                    for (var i = rand.Next(3); i > 0; i--)
-                                        Item.NewItem(it.position, ItemID.NebulaPickup1, noGrabDelay: true);
-                                    for (var i = rand.Next(3); i > 0; i--)
-                                        Item.NewItem(it.position, ItemID.NebulaPickup2, noGrabDelay: true);
-                                    for (var i = rand.Next(3); i > 0; i--)
-                                        Item.NewItem(it.position, ItemID.NebulaPickup3, noGrabDelay: true);
-                                }
-                        }
-                        else
-                        {
-                            for (var i = rand.Next(3); i > 0; i--)
-                                Item.NewItem(Main.LocalPlayer.position, ItemID.NebulaPickup1, noGrabDelay: true);
-                            for (var i = rand.Next(3); i > 0; i--)
-                                Item.NewItem(Main.LocalPlayer.position, ItemID.NebulaPickup2, noGrabDelay: true);
-                            for (var i = rand.Next(3); i > 0; i--)
-                                Item.NewItem(Main.LocalPlayer.position, ItemID.NebulaPickup3, noGrabDelay: true);
-                        }
-                    });
-
-                    BossCommands.Add("death", () =>
-                    {
-                        if (Main.netMode != NetmodeID.SinglePlayer)
-                            foreach (Player it in Main.player)
-                            {
-                                if (it.active)
-                                    for (var i = rand.Next(20); i > 0; i--)
-                                        Projectile.NewProjectile(it.position, new Vector2(0, 3), ProjectileID.EyeFire,
-                                            400, 0);
-                            }
-                        else
-                            for (var i = rand.Next(20); i > 0; i--)
-                                Projectile.NewProjectile(Main.LocalPlayer.position, new Vector2(0, 3),
-                                    ProjectileID.EyeFire, 400, 0);
-                    });
-
-                    BossCommands.Add("quit", () =>
-                    {
-                        Send($"@{ChatBoss} become a pussy and no more chat boss!");
-                        ChatBoss = "";
-                    });
+                    TwitchBoss.InitialiseDefault();
                 }
 
 
@@ -437,23 +369,24 @@ namespace TwitchChat
                     if (e.Message.StartsWith(CommandPrefix))
                         return;
                     //In case you self bot, we ignore your own messages 
+#if !DEBUG
                     if (e.From == Username)
                         return;
+#endif
                     //if message was sent by known bot, we ignore it
                     if (KnownBots.Contains(e.From))
                         return;
 
 
-                    var word = e.Message.ToLower().Split(' ').First();
+                    //var word = e.Message.ToLower().Split(' ').First();
 
-                    if (CurrentPool?.ContainsKey(word) ?? false)
+                    //if (CurrentPool?.ContainsKey(word) ?? false)
+                    //{
+                    //    CurrentPool[word]?.Invoke(e);
+                    //}
+                    if (e.From == TwitchBoss.Boss && TwitchBoss.Cooldown < DateTimeOffset.Now)
                     {
-                        CurrentPool[word]?.Invoke(e);
-                    }
-                    else if (e.From == ChatBoss && bossCooldown < DateTimeOffset.Now && BossCommands.ContainsKey(word))
-                    {
-                        bossCooldown = DateTimeOffset.Now.AddSeconds(20);
-                        BossCommands[word]?.Invoke();
+                        TwitchBoss.ProcessCommand(e);
                     }
                 }
             };
@@ -570,6 +503,8 @@ namespace TwitchChat
             EventsPool?.Clear();
             EventsPool = null;
             GlobalSpawnOverride.HandleCleanup();
+            TwitchBoss.ClearPool();
+            TwitchBoss.Boss = string.Empty;
         }
 
         public override void HandlePacket(BinaryReader reader, int whoAmI)
@@ -678,12 +613,12 @@ namespace TwitchChat
             }
             else if (type == NetPacketType.Custom)
             {
-                #region Constants
+#region Constants
 
                 const string lunarSky = "LunarSkies";
                 const string netSendFix = "NetSend";
 
-                #endregion
+#endregion
 
                 var eve = reader.ReadString();
                 if (eve == lunarSky)
@@ -712,7 +647,7 @@ namespace TwitchChat
         }
 
 
-        #region SEmote
+#region SEmote
 
         private class SEmote
         {
@@ -737,6 +672,6 @@ namespace TwitchChat
             //public int CompareTo(object obj) { return Start.CompareTo(obj); }
         }
 
-        #endregion
+#endregion
     }
 }

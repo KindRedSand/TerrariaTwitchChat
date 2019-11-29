@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
@@ -12,36 +9,46 @@ namespace TwitchChat
     public class TwitchWorld : ModWorld
     {
 
-        public bool firstNight = false;
+        public bool FirstNight;
 
         public List<string> UsedNicks = new List<string>();
 
         public override void Load(TagCompound tag)
         {
-            firstNight = tag.ContainsKey("firstNigh") ? (bool)tag["firstNight"] : false;
-            firstNight = true;
+            FirstNight = tag.ContainsKey("firstNigh") ? (bool)tag["firstNight"] : false;
+            //FirstNight = true;
             UsedNicks = tag.ContainsKey("usedNicks") ? (List<string>) tag["usedNicks"] : new List<string>();
+            var inter = new List<string>();
+
+            for (int i = 0; i < Main.maxNPCs; i++)
+            {
+                if (Main.npc[i].active && Main.npc[i].townNPC && UsedNicks.Contains(Main.npc[i].GivenName))
+                    inter.Add(Main.npc[i].GivenName);
+            }
+
+            UsedNicks = inter;
+
         }
 
         public override TagCompound Save()
         {
             return new TagCompound()
             {
-                ["firstNight"] = firstNight,
+                ["firstNight"] = FirstNight,
                 ["usedNicks"]  = UsedNicks,
             };
             
         }
 
 
-        bool statePrinted = false;
+        private bool statePrinted;
         public override void Initialize()
         {
             base.Initialize();
             statePrinted = false;
             for (int i = 0; i < Main.npc.Length; i++)
             {
-                TwitchChat.shadowNpc[i] = Main.npc[i].type;
+                TwitchChat.ShadowNpc[i] = Main.npc[i].type;
             }
         }
 

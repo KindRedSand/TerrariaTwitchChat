@@ -1,21 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
+using Razorwing.Framework.Threading;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Terraria;
-using Terraria.Localization;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
-using Terraria.ObjectData;
-using TwitchChat.Commands.Debug;
 using TwitchChat.Events;
-using Razorwing.Framework.Threading;
-using TwitchChat.Razorwing.Overrides.Timing;
-using Terraria.ID;
+using TwitchChat.Overrides.Razorwing.Timing;
 
 namespace TwitchChat
 {
@@ -62,7 +55,7 @@ namespace TwitchChat
             }
 
             TickUpdate?.Invoke(false);
-            ///Build new Scheduler based on main thread with clock based on world ticks (kind'a'like we root to game time instead real time schedule)
+            //Build new Scheduler based on main thread with clock based on world ticks (kind'a'like we root to game time instead real time schedule)
             WorldScheduler = new Scheduler(Thread.CurrentThread, new GameTickClock(this, true));
 
             RealtimeScheduler = new Scheduler(Thread.CurrentThread);
@@ -100,7 +93,7 @@ namespace TwitchChat
                     }
                 }catch (Exception e)
                 {
-                    ErrorLogger.Log($"Exception caughted in {nameof(Load)} when reading events cooldowns:\n" +
+                    mod.Logger.Error($"Exception caughted in {nameof(Load)} when reading events cooldown:\n" +
                         $"{e.Message}\n" +
                         $"{e.StackTrace}\n");
                 }
@@ -247,7 +240,7 @@ namespace TwitchChat
                         {
                             if (ev.Condition.HasFlag(TriggerCondition.SwitchTriggered))
                             {
-                                if (ev.IsDaystateValid && (ev.ConditionAction != null ? ev.ConditionAction.Invoke() : true))
+                                if (ev.IsDayStateValid && (ev.ConditionAction != null ? ev.ConditionAction.Invoke() : true))
                                 {
                                     if (ev.ChanceAction != null)//In case event has own start logic
                                     {
@@ -269,7 +262,7 @@ namespace TwitchChat
                         else if (!ev.Condition.HasFlag(TriggerCondition.SwitchTriggered))
                         {
 
-                            if (ev.IsDaystateValid && (ev.ConditionAction != null ? ev.ConditionAction.Invoke() : true))
+                            if (ev.IsDayStateValid && (ev.ConditionAction != null ? ev.ConditionAction.Invoke() : true))
                             {
                                 if (ev.ChanceAction != null)//In case event has own start logic
                                 {

@@ -11,10 +11,17 @@
     <Exec Command="&quot;$(tMLBuildServerPath)&quot; -build $(ProjectDir) -eac $(TargetPath) -define $(DefineConstants) -unsafe $(AllowUnsafeBlocks)" />
   </Target>
   <ItemGroup>
+    <Compile Remove="lib\**" />
+    <Compile Remove="packages\**" />
+    <EmbeddedResource Remove="lib\**" />
+    <EmbeddedResource Remove="packages\**" />
+    <None Remove="lib\**" />
+    <None Remove="packages\**" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Razorwing.Framework">
-      <HintPath>..\TradingPost\lib\Razorwing.Framework.dll</HintPath>
+      <HintPath>..\Razorwing.Framework\bin\Release\Razorwing.Framework.dll</HintPath>
     </Reference>
     <Reference Include="System.Net" />
-    <Reference Include="System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   </ItemGroup>
 </Project>

@@ -1,16 +1,20 @@
-﻿using System;
+﻿#region usings
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
+using On.Terraria;
 using Razorwing.Framework.Configuration;
 using Razorwing.Framework.IO.Stores;
 using Razorwing.Framework.Platform;
 using Razorwing.Framework.Threading;
-using Terraria;
+using Terraria.Enums;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
@@ -20,8 +24,15 @@ using TwitchChat.Chat;
 using TwitchChat.Events;
 using TwitchChat.IRCClient;
 using TwitchChat.Overrides;
-using TwitchChat.Razorwing.Overrides;
-using TwitchChat.Razorwing.Overrides.Timing;
+using TwitchChat.Overrides.Razorwing;
+using TwitchChat.Overrides.Razorwing.Timing;
+using Item = Terraria.Item;
+using Main = Terraria.Main;
+using NetMessage = Terraria.NetMessage;
+using Player = Terraria.Player;
+using Projectile = Terraria.Projectile;
+
+#endregion
 
 namespace TwitchChat
 {
@@ -38,31 +49,24 @@ namespace TwitchChat
         public const string TwitchColor = "942adf";
         public static readonly string Path;
 
-        public IEnumerable<string> KnownBots => ModContent.GetInstance<TwitchConfig>().UsersToIgnore;
-
-        private DateTimeOffset bossColdown = DateTimeOffset.Now;
+        internal static int[] ShadowNpc = new int[256];
+        private readonly UnifiedRandom rand = new UnifiedRandom();
         public Dictionary<string, Action> BossCommands = new Dictionary<string, Action>();
 
+        private DateTimeOffset bossCooldown = DateTimeOffset.Now;
+
         public string ChatBoss = "";
-        public string CommandPrefix = "!";
 
         public Dictionary<string, Action<ChannelMessageEventArgs>> CurrentPool = null;
         public bool Fun;
-        public bool IgnoreCommands;
         private bool inRestoringState;
 
         public Bindable<string> LastStatus = new Bindable<string>($"[c/{TwitchColor}: Client not connected]");
-        private readonly UnifiedRandom rand = new UnifiedRandom();
         public List<string> RecentChatters = new List<string>();
-
-
-        public bool ShowDebug;
         public string Username = "";
 
-        static TwitchChat()
-        {
-            Path = $@"{ModLoader.ModPath}\Cache\Twitch\";
-        }
+        static TwitchChat() { Path = $@"{ModLoader.ModPath}\Cache\Twitch\"; }
+
 
         public TwitchChat()
         {
@@ -70,19 +74,24 @@ namespace TwitchChat
             if (Main.netMode != NetmodeID.Server)
                 ChatManager.Register<EmoticonHandler>("emote", "e");
 
+
             try
             {
-                if (File.Exists(
-                        $@"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\My Games\Terraria\ModLoader\TwitchChat\Twitch.cfg") &&
-                    !File.Exists($@"{Path}Twitch.ini"))
-                    File.Move(
-                        $@"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\My Games\Terraria\ModLoader\TwitchChat\Twitch.cfg",
-                        $@"{Path}Twitch.ini");
+                if (File.Exists($@"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\My Games\Terraria\ModLoader\TwitchChat\Twitch.cfg") && !File.Exists($@"{Path}Twitch.ini"))
+                    File.Move($@"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\My Games\Terraria\ModLoader\TwitchChat\Twitch.cfg", $@"{Path}Twitch.ini");
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Logger.Warn($"Failed to move config file to cache folder:\n{e}");
             }
         }
+
+        public IEnumerable<string> KnownBots => ModContent.GetInstance<TwitchConfig>().UsersToIgnore;
+        public string CommandPrefix => ModContent.GetInstance<TwitchConfig>().CommandPrefix;
+        public bool IgnoreCommands => ModContent.GetInstance<TwitchConfig>().IgnoreCommands;
+
+
+        public bool ShowDebug => ModContent.GetInstance<TwitchConfig>().ShowIRC;
 
         internal TwitchOldConfig OldConfig { get; set; }
         internal DesktopStorage Storage { get; set; }
@@ -96,11 +105,13 @@ namespace TwitchChat
 
         public string Channel { get; private set; }
 
-        private void LastStatus_ValueChanged(string m)
-        {
-            Text(m);
-        }
+        private static void LastStatus_ValueChanged(string m) { Text(m); }
 
+        /// <summary>
+        ///     Write text in to chat/console.
+        ///     Mostly used for debugging and sending client only related info
+        /// </summary>
+        /// <param name="m">Text to print</param>
         public static void Text(string m)
         {
             switch (Main.netMode)
@@ -115,13 +126,29 @@ namespace TwitchChat
             }
         }
 
+        /// <summary>
+        ///     Send message in chat. Can use locale strings and write text from server to clients even if client don't have this
+        ///     mod
+        /// </summary>
+        /// <param name="m">Text to print</param>
+        /// <param name="color">text color</param>
         public static void Post(string m, Color color)
         {
-            if (Main.netMode == NetmodeID.Server)
-                NetMessage.BroadcastChatMessage(NetworkText.FromKey(m), color);
-            else if (Main.netMode == NetmodeID.SinglePlayer) Main.NewText(m, color);
+            switch (Main.netMode)
+            {
+                case NetmodeID.SinglePlayer:
+                    Main.NewText(m);
+                    break;
+                case NetmodeID.Server:
+                    NetMessage.BroadcastChatMessage(NetworkText.FromKey(m), color);
+                    break;
+            }
         }
 
+        /// <summary>
+        ///     Send message to twitch IRC server
+        /// </summary>
+        /// <param name="text">Text to print</param>
         public static void Send(string text)
         {
             if (text != string.Empty) Instance.Irc?.SendMessage(Instance.Channel, text);
@@ -134,12 +161,13 @@ namespace TwitchChat
             RecentChatters = new List<string>();
 
 #if DEBUG
-            RecentChatters.AddRange(new string[]
+            //Used for debugging
+            RecentChatters.AddRange(new[]
             {
                 "Nightbot",
                 "KarmikKoalla",
                 "Moobot",
-                "SomeoneFromChat",
+                "SomeoneFromChat"
             });
 #endif
 
@@ -164,16 +192,17 @@ namespace TwitchChat
             EmoticonHandler.store = new EmoticonsStore(Store);
 
             if (Storage.Exists("EmoteIDs.json"))
-                using (var p = Storage.GetStream("EmoteIDs.json"))
-                using (var s = new StreamReader(p))
+                using (Stream p = Storage.GetStream("EmoteIDs.json"))
+                using (StreamReader s = new StreamReader(p))
                 {
                     try
                     {
                         EmoticonHandler.convertingEmotes =
                             JsonConvert.DeserializeObject<Dictionary<string, int>>(s.ReadToEnd());
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
+                        Logger.Warn($"Failed to load emotes id:\n{e}");
                     }
                 }
 
@@ -183,36 +212,37 @@ namespace TwitchChat
 
             Irc = new IrcClient(); // This client used in my twitch bot so class know all info about twitch irc server so we don't need to provide what info here 
 
-            ShowDebug = OldConfig.Get<bool>(TwitchCfg.ShowAllIrc);
-            IgnoreCommands = OldConfig.Get<bool>(TwitchCfg.IgnoreCommands);
-            CommandPrefix = OldConfig.Get<string>(TwitchCfg.IgnoreCommandPrefix);
+            //Start migrating to new configs
+            //ShowDebug = OldConfig.Get<bool>(TwitchCfg.ShowAllIrc);
+            //IgnoreCommands = OldConfig.Get<bool>(TwitchCfg.IgnoreCommands);
+            //CommandPrefix = OldConfig.Get<string>(TwitchCfg.IgnoreCommandPrefix);
             Username = OldConfig.Get<string>(TwitchCfg.Username);
             Fun = OldConfig.Get<bool>(TwitchCfg.EnableFun);
             Channel = OldConfig.Get<string>(TwitchCfg.Channel);
 
             if (ShowDebug)
-                global::Razorwing.Framework.Logging.Logger.Storage =
-                    Storage; ///Thx tML 0.11 for adding <see cref="Mod.Logger"/> <3 Breaking all as allways 
+                Razorwing.Framework.Logging.Logger.Storage =
+                    Storage; //Thx tML 0.11 for adding "Mod.Logger" <3 Breaking all as all ways 
 
             if (Fun)
             {
-                //Since it not work on server (Not affect clients) untill i write packets for this Twitch boss is disabled for server
+                //Since it not work on server (Not affect clients) until i write packets for this Twitch boss is disabled for server
                 if (Main.netMode == NetmodeID.Server || Main.netMode == NetmodeID.SinglePlayer)
                 {
                     BossCommands.Add("heal", () =>
                     {
                         if (Main.netMode != NetmodeID.SinglePlayer)
-                            foreach (var it in Main.player)
+                            foreach (Player it in Main.player)
                             {
                                 if (it.active)
-                                    for (var i = rand.Next(20); i > 0; i--)
+                                    for (int i = rand.Next(20); i > 0; i--)
                                     {
                                         Item.NewItem(it.position, ItemID.Heart, noGrabDelay: true);
                                         Item.NewItem(it.position, ItemID.Star, noGrabDelay: true);
                                     }
                             }
                         else
-                            for (var i = rand.Next(20); i > 0; i--)
+                            for (int i = rand.Next(20); i > 0; i--)
                             {
                                 Item.NewItem(Main.LocalPlayer.position, ItemID.Heart, noGrabDelay: true);
                                 Item.NewItem(Main.LocalPlayer.position, ItemID.Star, noGrabDelay: true);
@@ -223,24 +253,24 @@ namespace TwitchChat
                     {
                         if (Main.netMode != NetmodeID.SinglePlayer)
                         {
-                            foreach (var it in Main.player)
+                            foreach (Player it in Main.player)
                                 if (it.active)
                                 {
-                                    for (var i = rand.Next(3); i > 0; i--)
+                                    for (int i = rand.Next(3); i > 0; i--)
                                         Item.NewItem(it.position, ItemID.NebulaPickup1, noGrabDelay: true);
-                                    for (var i = rand.Next(3); i > 0; i--)
+                                    for (int i = rand.Next(3); i > 0; i--)
                                         Item.NewItem(it.position, ItemID.NebulaPickup2, noGrabDelay: true);
-                                    for (var i = rand.Next(3); i > 0; i--)
+                                    for (int i = rand.Next(3); i > 0; i--)
                                         Item.NewItem(it.position, ItemID.NebulaPickup3, noGrabDelay: true);
                                 }
                         }
                         else
                         {
-                            for (var i = rand.Next(3); i > 0; i--)
+                            for (int i = rand.Next(3); i > 0; i--)
                                 Item.NewItem(Main.LocalPlayer.position, ItemID.NebulaPickup1, noGrabDelay: true);
-                            for (var i = rand.Next(3); i > 0; i--)
+                            for (int i = rand.Next(3); i > 0; i--)
                                 Item.NewItem(Main.LocalPlayer.position, ItemID.NebulaPickup2, noGrabDelay: true);
-                            for (var i = rand.Next(3); i > 0; i--)
+                            for (int i = rand.Next(3); i > 0; i--)
                                 Item.NewItem(Main.LocalPlayer.position, ItemID.NebulaPickup3, noGrabDelay: true);
                         }
                     });
@@ -248,15 +278,15 @@ namespace TwitchChat
                     BossCommands.Add("death", () =>
                     {
                         if (Main.netMode != NetmodeID.SinglePlayer)
-                            foreach (var it in Main.player)
+                            foreach (Player it in Main.player)
                             {
                                 if (it.active)
-                                    for (var i = rand.Next(20); i > 0; i--)
+                                    for (int i = rand.Next(20); i > 0; i--)
                                         Projectile.NewProjectile(it.position, new Vector2(0, 3), ProjectileID.EyeFire,
                                             400, 0);
                             }
                         else
-                            for (var i = rand.Next(20); i > 0; i--)
+                            for (int i = rand.Next(20); i > 0; i--)
                                 Projectile.NewProjectile(Main.LocalPlayer.position, new Vector2(0, 3),
                                     ProjectileID.EyeFire, 400, 0);
                     });
@@ -270,8 +300,8 @@ namespace TwitchChat
 
 
                 //Register inner world event invasions
-                foreach (var smod in ModLoader.Mods)
-                foreach (var it in smod.GetType().Assembly.DefinedTypes)
+                foreach (Mod mod in ModLoader.Mods)
+                foreach (TypeInfo it in mod.GetType().Assembly.DefinedTypes)
                     if (!it.IsAbstract && (
                             it.BaseType != typeof(object) && it.BaseType == typeof(IWorldEvent) ||
                             it.BaseType?.BaseType != typeof(object) && it.BaseType?.BaseType == typeof(IWorldEvent))
@@ -299,6 +329,7 @@ namespace TwitchChat
                     }
                     catch (Exception)
                     {
+                        Logger.Warn("Failed to post message");
                     }
                 };
 
@@ -339,53 +370,48 @@ namespace TwitchChat
                     {
                         if (e.Message.StartsWith(CommandPrefix))
                             return;
-                        //In case you selfbotting, we ignore your own messages 
+                        //In case you self bot, we ignore your own messages 
                         if (e.From == Username)
                             return;
-                        //if message was sended by known bot, we ignore it
+                        //if message was send by known bot, we ignore it
                         if (KnownBots.Contains(e.From))
                             return;
                     }
 
-                    var result = e.Message;
+                    string result = e.Message;
 
                     var parsed = new List<SEmote>();
 
-                    foreach (var it in e.Badge.emotes)
+                    foreach (string it in e.Badge.emotes)
                     {
                         if (it == string.Empty)
                             break;
-                        var pair = it.Split(':');
-                        var ind = pair[1].Split(',');
-                        parsed.AddRange(ind.Select((p) =>
+                        string[] pair = it.Split(':');
+                        string[] ind = pair[1].Split(',');
+                        parsed.AddRange(ind.Select(p =>
                         {
-                            var ip = p.Split('-');
+                            string[] ip = p.Split('-');
                             return new SEmote(ip[0], ip[1], pair[0]);
                         }));
-                        //foreach (var index in ind)
-                        //{
-                        //    var ipair = index.Split('-');
-                        //    parsed.Add(new SEmote(ipair[0], ipair[1], pair[0]));
-                        //}
                     }
 
                     if (parsed.Count != 0)
                     {
                         var list = new Dictionary<int, string>();
-                        foreach (var it in parsed)
+                        foreach (SEmote it in parsed)
                         {
                             if (list.ContainsKey(it.Emote))
                                 continue;
-                            var st = e.Message.Substring(it.Start, it.End - it.Start + 1);
+                            string st = e.Message.Substring(it.Start, it.End - it.Start + 1);
 
-                            //Not perfect couse if Kappa mentioned in msg KappaPride get breaked,
-                            //but it way faster what per gliph concat 
+                            //Not perfect because if Kappa mentioned in msg KappaPride get broken,
+                            //but it way faster what per glyph concat 
                             result = result.Replace(st, $"[e:{it.Emote}]");
 
                             list.Add(it.Emote, st);
                         }
 
-                        foreach (var em in list)
+                        foreach (KeyValuePair<int, string> em in list)
                             if (!EmoticonHandler.convertingEmotes.ContainsKey(em.Value))
                                 EmoticonHandler.convertingEmotes.Add(em.Value, em.Key);
                     }
@@ -395,7 +421,7 @@ namespace TwitchChat
                     }
 
 
-                    var prefix = "";
+                    string prefix = "";
                     if (e.Badge.sub) prefix += $"[i:{ItemID.Star}] ";
                     if (e.Badge.mod) prefix += $"[i:{ItemID.Arkhalis}]";
 
@@ -408,93 +434,83 @@ namespace TwitchChat
 
                 if ((Main.netMode == NetmodeID.Server || Main.netMode == NetmodeID.SinglePlayer) && Fun)
                 {
-                    {
-                        if (e.Message.StartsWith(CommandPrefix))
-                            return;
-                        //In case you selfbotting, we ignore your own messages 
-                        if (e.From == Username)
-                            return;
-                        //if message was sended by known bot, we ignore it
-                        if (KnownBots.Contains(e.From))
-                            return;
-                    }
+                    if (e.Message.StartsWith(CommandPrefix))
+                        return;
+                    //In case you self bot, we ignore your own messages 
+                    if (e.From == Username)
+                        return;
+                    //if message was sent by known bot, we ignore it
+                    if (KnownBots.Contains(e.From))
+                        return;
 
-                    var word = e.Message.ToLower().Split(' ').First();
+
+                    string word = e.Message.ToLower().Split(' ').First();
 
                     if (CurrentPool?.ContainsKey(word) ?? false)
                     {
                         CurrentPool[word]?.Invoke(e);
                     }
-                    else
+                    else if (e.From == ChatBoss && bossCooldown < DateTimeOffset.Now && BossCommands.ContainsKey(word))
                     {
-                        if (e.From == ChatBoss && bossColdown < DateTimeOffset.Now && BossCommands.ContainsKey(word))
-                        {
-                            bossColdown = DateTimeOffset.Now.AddSeconds(20);
-                            BossCommands[word]?.Invoke();
-                        }
+                        bossCooldown = DateTimeOffset.Now.AddSeconds(20);
+                        BossCommands[word]?.Invoke();
                     }
                 }
             };
 
             if (OldConfig.Get<bool>(TwitchCfg.AutoConnect) && OldConfig.Get<string>(TwitchCfg.OAToken) !=
-                                                       "https://twitchapps.com/tmi/"
-                                                       && OldConfig.Get<string>(TwitchCfg.Username) != "missingno")
+                                                           "https://twitchapps.com/tmi/"
+                                                           && OldConfig.Get<string>(TwitchCfg.Username) != "missingno")
             {
                 Irc.Username = OldConfig.Get<string>(TwitchCfg.Username);
                 Irc.AuthToken = OldConfig.Get<string>(TwitchCfg.OAToken);
                 Irc.Connect();
             }
 
-            On.Terraria.WorldGen.SpawnTownNPC += SpawnTownNpcHook;
+            WorldGen.SpawnTownNPC += SpawnTownNpcHook;
         }
 
-        internal static int[] shadowNpc = new int[256];
-
-        private Terraria.Enums.TownNPCSpawnResult SpawnTownNpcHook(On.Terraria.WorldGen.orig_SpawnTownNPC orig, int x, int y)
+        private TownNPCSpawnResult SpawnTownNpcHook(WorldGen.orig_SpawnTownNPC orig, int x, int y)
         {
             //Avoid crush when we not in world
             if (Main.gameMenu)
-                return Terraria.Enums.TownNPCSpawnResult.Blocked;
+                return TownNPCSpawnResult.Blocked;
 
-            var v = orig?.Invoke(x, y) ?? Terraria.Enums.TownNPCSpawnResult.Blocked;
-            if (v != Terraria.Enums.TownNPCSpawnResult.Successful)
+            TownNPCSpawnResult v = orig?.Invoke(x, y) ?? TownNPCSpawnResult.Blocked;
+            if (v != TownNPCSpawnResult.Successful)
                 return v;
-            
+
             //if game actually spawn new town npc
-            var w = ModContent.GetInstance<TwitchWorld>();
+            TwitchWorld w = ModContent.GetInstance<TwitchWorld>();
             var r = new WeightedRandom<string>();
-            var l = RecentChatters.Except(w.UsedNicks);
+            IEnumerable<string> l = RecentChatters.Except(w.UsedNicks);
 
-            //If we have any usernames to append
-            if (!l.Any())
-                return v;
-            foreach (var it in l)
+            foreach (string it in l)
                 r.Add(it);
+
             //Then select random nick
-            var username = r.Get();
+            string username = r.Get();
+
+            if (username == string.Empty)
+                return v;
 
             //Go through shadow array
-            for (int i = 0; i < Main.npc.Length; i++)
-            {
+            for (int i = 0; i < Main.maxNPCs; i++)
                 //If this is active town npc and has different typeID what this slot has before
-                if (Main.npc[i].active && Main.npc[i].townNPC && shadowNpc[i] != Main.npc[i].type)
+                if (Main.npc[i].active && Main.npc[i].townNPC && ShadowNpc[i] != Main.npc[i].type)
                 {
                     //Post a message
                     Post($"But wait, he's actually a [c/{TwitchColor}:{username}]!", Color.White);
                     w.UsedNicks.Add(username);
-                    //Add a scheduled action since npc's at this moment isn't reseted yet
+                    //Add a scheduled action since npc at this moment isn't get reset yet
                     ModContent.GetInstance<EventWorld>().WorldScheduler.AddDelayed(
                         () => { Main.npc[i].GivenName = username; },
                         5);
                     break;
                 }
-            }
 
             //Update shadow array
-            for (int i = 0; i < Main.npc.Length; i++)
-            {
-                TwitchChat.shadowNpc[i] = Main.npc[i].type;
-            }
+            for (int i = 0; i < Main.npc.Length; i++) ShadowNpc[i] = Main.npc[i].type;
 
             return v;
         }
@@ -502,7 +518,7 @@ namespace TwitchChat
         public override void UpdateMusic(ref int music, ref MusicPriority priority)
         {
             if (ModContent.GetInstance<EventWorld>() != null &&
-                ModContent.GetInstance<EventWorld>().CurrentEvent != null && 
+                ModContent.GetInstance<EventWorld>().CurrentEvent != null &&
                 ModContent.GetInstance<EventWorld>().CurrentEvent.MusicId != -1)
             {
                 music = ModContent.GetInstance<EventWorld>().CurrentEvent.MusicId;
@@ -519,8 +535,8 @@ namespace TwitchChat
             base.Unload();
 
             if (Storage != null)
-                using (var p = Storage?.GetStream("EmoteIDs.json", FileAccess.Write))
-                using (var s = new StreamWriter(p))
+                using (Stream p = Storage?.GetStream("EmoteIDs.json", FileAccess.Write))
+                using (StreamWriter s = new StreamWriter(p))
                 {
                     s.Write(JsonConvert.SerializeObject(EmoticonHandler.convertingEmotes, Formatting.Indented));
                 }
@@ -538,8 +554,8 @@ namespace TwitchChat
             Textures?.Dispose();
             Textures = null;
             RecentChatters = null;
-            On.Terraria.WorldGen.SpawnTownNPC -= SpawnTownNpcHook;
-            
+            WorldGen.SpawnTownNPC -= SpawnTownNpcHook;
+
 
             if (ModContent.GetInstance<EventWorld>() != null)
             {
@@ -558,7 +574,7 @@ namespace TwitchChat
 
         public override void HandlePacket(BinaryReader reader, int whoAmI)
         {
-            var type = (NetPacketType) reader.ReadByte();
+            NetPacketType type = (NetPacketType) reader.ReadByte();
 
             if (type != NetPacketType.Custom)
                 //Currently only server can said us what we should do
@@ -567,8 +583,8 @@ namespace TwitchChat
 
             if (type == NetPacketType.EventWasStarted)
             {
-                var name = reader.ReadString();
-                foreach (var it in EventsPool)
+                string name = reader.ReadString();
+                foreach (IWorldEvent it in EventsPool)
                     if (it.GetType().Name == name)
                     {
                         ModContent.GetInstance<EventWorld>().StartWorldEvent(it);
@@ -577,10 +593,10 @@ namespace TwitchChat
 
                 if (ModContent.GetInstance<EventWorld>().CurrentEvent == null)
                     Main.NewText(
-                        $"WARNING! You ether or disable FunMode or you are using outdated version of mod, what havent an {name} event! Switching to NoSync mode...");
+                        $"WARNING! You ether or disable FunMode or you are using outdated version of mod, what haven't an {name} event! Switching to NoSync mode...");
 
                 ModContent.GetInstance<EventWorld>().CurrentEvent.TimeLeft = reader.ReadInt32();
-                var invType = (InvasionType) reader.ReadByte();
+                InvasionType invType = (InvasionType) reader.ReadByte();
                 if (invType == InvasionType.Invasion)
                 {
                     Main.invasionProgressWave = reader.ReadInt32();
@@ -593,7 +609,7 @@ namespace TwitchChat
             }
             else if (type == NetPacketType.EventWaveUpdated)
             {
-                var name = reader.ReadString();
+                string name = reader.ReadString();
                 if (ModContent.GetInstance<EventWorld>().CurrentEvent == null ||
                     ModContent.GetInstance<EventWorld>().CurrentEvent.GetType().Name != name)
                 {
@@ -609,7 +625,7 @@ namespace TwitchChat
                     }
 
 
-                    foreach (var it in EventsPool)
+                    foreach (IWorldEvent it in EventsPool)
                         if (it.GetType().Name == name)
                         {
                             ModContent.GetInstance<EventWorld>().StartWorldEvent(it);
@@ -618,12 +634,12 @@ namespace TwitchChat
 
                     if (ModContent.GetInstance<EventWorld>().CurrentEvent == null)
                     {
-                        //Main.NewText($"WARNING! You ether or disable FunMode or you are using outdated version of mod, what havent an {name} event!");
+                        //Main.NewText($"WARNING! You ether or disable FunMode or you are using outdated version of mod, what haven't an {name} event!");
                     }
                 }
 
                 ModContent.GetInstance<EventWorld>().CurrentEvent.TimeLeft = reader.ReadInt32();
-                var invType = (InvasionType) reader.ReadByte();
+                InvasionType invType = (InvasionType) reader.ReadByte();
                 if (invType == InvasionType.Invasion)
                 {
                     Main.invasionProgressWave = reader.ReadInt32();
@@ -637,7 +653,7 @@ namespace TwitchChat
             }
             else if (type == NetPacketType.EventEnded)
             {
-                var name = reader.ReadString();
+                string name = reader.ReadString();
                 if (ModContent.GetInstance<EventWorld>().CurrentEvent == null ||
                     ModContent.GetInstance<EventWorld>().CurrentEvent.GetType().Name != name)
                 {
@@ -669,18 +685,18 @@ namespace TwitchChat
 
                 #endregion
 
-                var eve = reader.ReadString();
+                string eve = reader.ReadString();
                 if (eve == lunarSky)
                 {
-                    var t = (LunarSkies) reader.ReadByte();
+                    LunarSkies t = (LunarSkies) reader.ReadByte();
                     EventPlayer.LunarSky = t;
                 }
                 else if (eve == netSendFix)
                 {
-                    var b = reader.ReadBoolean();
+                    bool b = reader.ReadBoolean();
                     if (b)
                     {
-                        var p = GetPacket();
+                        ModPacket p = GetPacket();
                         p.Write((byte) NetPacketType.Custom);
                         p.Write(netSendFix);
                         p.Write(false);
@@ -718,10 +734,7 @@ namespace TwitchChat
                 Emote = em;
             }
 
-            public int CompareTo(object obj)
-            {
-                return Start.CompareTo(obj);
-            }
+            public int CompareTo(object obj) { return Start.CompareTo(obj); }
         }
 
         #endregion

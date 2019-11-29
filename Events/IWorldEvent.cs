@@ -31,8 +31,8 @@ namespace TwitchChat.Events
         public virtual Color EndColor => Color.Green;
 
         /// <summary>
-        /// Owerride this property if you want play specifc music during event
-        /// For modded music return somthing like
+        /// Override this property if you want play specific music during event
+        /// For modded music return something like
         /// <code>
         /// TwitchChat.Instance.GetSoundSlot(SoundType.Music, "Sounds/Music/VeryImportantMusic"));
         /// </code>
@@ -45,7 +45,7 @@ namespace TwitchChat.Events
         /// <summary>
         /// Allow easy check for daytime
         /// </summary>
-        public bool IsDaystateValid
+        public bool IsDayStateValid
         {
             get
             {
@@ -57,13 +57,13 @@ namespace TwitchChat.Events
 
         
         /// <summary>
-        /// Cooldown betwen events that starts automatically
-        /// Should be in ~seconds~ game ticks
+        /// Cooldown between events that starts automatically
+        /// Should be in game ticks
         /// </summary>
         public abstract int Cooldown { get; set; }
 
         /// <summary>
-        /// Lenght of event, if this starts not by using <see cref="TriggerCondition.OnDayBegin"/> or <see cref="TriggerCondition.OnNightBegin"/>.
+        /// Length of event, if this starts not by using <see cref="TriggerCondition.OnDayBegin"/> or <see cref="TriggerCondition.OnNightBegin"/>.
         /// In game ticks, there 32400 -> night time, 54000 -> day time
         /// </summary>
         public virtual int Length { get; set; } = 32400;
@@ -114,18 +114,16 @@ namespace TwitchChat.Events
         /// </summary>
         public virtual int TimeLeft
         {
-            get
-            {
-                return tLeft;
-            }
+            get => tLeft;
             set
             {
-                if (started)
-                {
-                    if (value <= 0 && Type != InvasionType.Invasion)
-                        started = false;
-                    tLeft = value;
-                }
+                if (!started)
+                    return;
+
+                if (value <= 0 && Type != InvasionType.Invasion)
+                    started = false;
+                tLeft = value;
+
             }
         }
 
@@ -138,7 +136,7 @@ namespace TwitchChat.Events
         #region Invasion
 
         /// <summary>
-        /// Dictionary of invaders, there first => mob id and second => chance to apear in percent
+        /// Dictionary of invaders, there first => mob id and second => chance to appear in percent
         /// To use mobs from others mods use <code>
         /// ModLoader.GetMod("modname").NPCType("npcname")
         /// </code>
@@ -147,7 +145,7 @@ namespace TwitchChat.Events
         public abstract IDictionary<int, float> Invaders { get; }
 
         /// <summary>
-        /// Drop from all mobs in invasion, there first => item id and second => chance for dorps
+        /// Drop from all mobs in invasion, there first => item id and second => chance for drops
         /// </summary>
         // ID : Chance %
         public virtual IDictionary<int, float> InvadersDrop => null;
@@ -348,7 +346,7 @@ namespace TwitchChat.Events
             }
         }
 
-        private int oldProggressData = 0;
+        private int oldProgressData = 0;
 
         public void PerformTick(EventWorld world, TwitchChat mod)
         {
@@ -398,7 +396,7 @@ namespace TwitchChat.Events
             {
                 if (Main.netMode == 2)
                 {
-                    if (TimeLeft != oldProggressData)
+                    if (TimeLeft != oldProgressData)
                     {
                         var netMessage = mod.GetPacket();
                         netMessage.Write((byte)NetPacketType.EventWaveUpdated);
@@ -411,7 +409,7 @@ namespace TwitchChat.Events
                         }
                         netMessage.Send();
                     }
-                    oldProggressData = TimeLeft;
+                    oldProgressData = TimeLeft;
                 }
 
                 Main.invasionProgress = (int)(100 * (((float)Main.invasionSize - (float)TimeLeft) / (float)Main.invasionSize));
@@ -424,7 +422,7 @@ namespace TwitchChat.Events
         }
 
         /// <summary>
-        /// Called on event egining (not when warning message apears!)
+        /// Called on event beginning (not when warning message appears!)
         /// </summary>
         protected virtual void OnStart()
         {
@@ -450,7 +448,7 @@ namespace TwitchChat.Events
         /// <summary>
         /// Called during invasion when wave was changed
         /// </summary>
-        public virtual void OnWaveChange()//Made public couse we need to sync this with server
+        public virtual void OnWaveChange()//Made public because we need to sync this with server
         {
 
         }
@@ -503,7 +501,7 @@ namespace TwitchChat.Events
     }
 
     /// <summary>
-    /// Litle help with percentages
+    /// Little help with percentages
     /// </summary>
     public static class Chances
     {
@@ -547,12 +545,12 @@ namespace TwitchChat.Events
 
     }
 
-    public enum LenghtEnum : byte
+    public enum LengthEnum : byte
     {
         EndOfDay,
-        EndOfNigth,
-        CustomLengt,
-        UntileNight,
+        EndOfNight,
+        CustomLength,
+        UntilNight,
         UntilDay,
     }
 }

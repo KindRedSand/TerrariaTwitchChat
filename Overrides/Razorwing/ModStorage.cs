@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Terraria.ModLoader;
 
-namespace TwitchChat.Razorwing.Overrides
+namespace TwitchChat.Overrides.Razorwing
 {
     public class ModStorage : DesktopStorage
     {

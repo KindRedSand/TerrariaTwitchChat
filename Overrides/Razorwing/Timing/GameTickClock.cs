@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Razorwing.Framework.Timing;
 
 
-namespace TwitchChat.Razorwing.Overrides.Timing
+namespace TwitchChat.Overrides.Razorwing.Timing
 {
     public class GameTickClock : IAdjustableClock, IDisposable
     {

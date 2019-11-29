@@ -4,7 +4,7 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace TwitchChat.Razorwing.Overrides
+namespace TwitchChat.Overrides.Razorwing
 {
     /// <summary>
     /// Temp solution what uses <see cref="WebClient"/> instead of <see cref="HttpClient"/>

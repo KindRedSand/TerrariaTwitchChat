@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using TwitchChat.Overrides;
@@ -27,7 +28,16 @@ namespace TwitchChat.Events
         /// <param name="mod"></param>
         internal void EventStart(EventWorld world, TwitchChat mod)
         {
-            Post(StartString, StartColor);
+            if (Main.netMode == NetmodeID.Server) // Server
+            {
+                NetMessage.BroadcastChatMessage(NetworkText.FromKey(LanguageManager.Instance.GetTextValue(StartString)), StartColor);
+            }
+            else if (Main.netMode == NetmodeID.SinglePlayer) // Single Player
+            {
+                Main.NewText(Language.GetTextValue(LanguageManager.Instance.GetTextValue(StartString)), StartColor);
+            }
+
+            Post(Language.GetTextValue(LanguageManager.Instance.GetTextValue(StartString)), StartColor);
 
             started = true;
             TimeLeft = Length;
@@ -85,7 +95,14 @@ namespace TwitchChat.Events
 
         public void EventEnd(EventWorld world, TwitchChat mod)
         {
-            Post(EndString, EndColor);
+            if (Main.netMode == NetmodeID.Server) // Server
+            {
+                NetMessage.BroadcastChatMessage(NetworkText.FromKey(LanguageManager.Instance.GetTextValue(EndString)), StartColor);
+            }
+            else if (Main.netMode == NetmodeID.SinglePlayer) // Single Player
+            {
+                Main.NewText(Language.GetTextValue(LanguageManager.Instance.GetTextValue(EndString)), StartColor);
+            }
 
             GlobalSpawnOverride.EndOverride();
             GlobalSpawnOverride.DisablePoolOverride();
@@ -175,7 +192,7 @@ namespace TwitchChat.Events
                     oldProgressData = TimeLeft;
                 }
 
-                Main.invasionProgress = 100 * ((Main.invasionSize - TimeLeft) / Main.invasionSize);
+                Main.invasionProgress = (int)(100 * ((float)(Main.invasionSize - TimeLeft) / Main.invasionSize));
                 Main.invasionProgressDisplayLeft = 1000;
             }
 

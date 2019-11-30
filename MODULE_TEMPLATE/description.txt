@@ -1,0 +1,4 @@
+This is example module for [c/942adf:TwitchChat] fun mode
+
+Any mod can have events for fun mode without depending on core mod if add weak reference to [c/942adf:TwitchChat] in build.txt
+ 

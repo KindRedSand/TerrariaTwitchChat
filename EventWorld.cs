@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Razorwing.Framework.Threading;
 using Terraria;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using TwitchChat.Events;
@@ -69,7 +70,7 @@ namespace TwitchChat
 
             lastDayState = Main.dayTime;
 
-            if (ModLoader.version < new Version(0, 11, 4))
+            if (ModLoader.version < new Version(0, 11, 5))
                 if (Main.netMode == NetmodeID.MultiplayerClient && mod.IsNetSynced)
                 {
                     ModPacket p = mod.GetPacket();
@@ -96,7 +97,7 @@ namespace TwitchChat
                 }
                 catch (Exception e)
                 {
-                    mod.Logger.Error($"Exception caughted in {nameof(Load)} when reading events cooldown:\n" +
+                    mod.Logger.Error($"Exception caught in {nameof(Load)} when reading events cooldown:\n" +
                                      $"{e.Message}\n" +
                                      $"{e.StackTrace}\n");
                 }
@@ -117,7 +118,14 @@ namespace TwitchChat
                 }
                 else
                 {
-                    TwitchChat.Post(ev.Warning, ev.WarnColor);
+                    if (Main.netMode == NetmodeID.Server) // Server
+                    {
+                        NetMessage.BroadcastChatMessage(NetworkText.FromKey(LanguageManager.Instance.GetTextValue(ev.Warning)), ev.WarnColor);
+                    }
+                    else if (Main.netMode == NetmodeID.SinglePlayer) // Single Player
+                    {
+                        Main.NewText(Language.GetTextValue(LanguageManager.Instance.GetTextValue(ev.Warning)), ev.WarnColor);
+                    }
 
                     WorldScheduler.AddDelayed(() =>
                     {
@@ -143,11 +151,14 @@ namespace TwitchChat
         //    //CurrentEvent.EventEnd(this, (TwitchChat)mod);
         //}
 
+        public void AddTask(Action task) { WorldScheduler.Add(task); }
+        public void AddDelayedTask(Action task, double delay) { WorldScheduler.AddDelayed(task, delay); }
+
         public override void NetSend(BinaryWriter writer)
         {
             // Hope it get fixed in next update
             // https://github.com/tModLoader/tModLoader/issues/635
-            if (ModLoader.version < new Version(0, 11, 4))
+            if (ModLoader.version < new Version(0, 11, 5))
                 return;
 
             WriteNetSendData(writer);

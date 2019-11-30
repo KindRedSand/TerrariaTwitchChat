@@ -11,7 +11,7 @@ namespace TwitchChat.Events
 {
     public class TwitchBossEvent : VoteEvent
     {
-        internal readonly List<string> part = new List<string>();
+        internal readonly List<string> Part = new List<string>();
         private readonly WeightedRandom<string> rand = new WeightedRandom<string>();
 
         private DateTimeOffset assignTime = DateTimeOffset.Now;
@@ -64,13 +64,14 @@ namespace TwitchChat.Events
 
             rand.Clear();
 
-            part.Clear();
+            Part.Clear();
 
             Started = true;
 
             TwitchChat.Instance.Irc.ChannelMessage += Handle;
 
             TwitchChat.Send(StartString + " Quick write \"boss\" in chat!");
+            TwitchChat.Post(StartString, Color.White);
         }
 
         protected override void OnEnd()
@@ -105,10 +106,10 @@ namespace TwitchChat.Events
 
         private void Handle(object sender, ChannelMessageEventArgs msg)
         {
-            if (part.Contains(msg.From))
+            if (Part.Contains(msg.From) || TwitchBoss.Cooldown > DateTimeOffset.Now && msg.Message.StartsWith("boss"))
                 return;
 
-            part.Add(msg.From);
+            Part.Add(msg.From);
             rand.Add(msg.From, msg.Badge.sub ? 2 : 1);
         }
     }

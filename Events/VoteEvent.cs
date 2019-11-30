@@ -13,6 +13,8 @@ namespace TwitchChat.Events
 
         public abstract string Description { get; }
 
+        public override int Length { get; set; } = 60 * 30;
+
         /// <summary>
         ///     Return list of available votes.
         ///     <see cref="Action{T}" /> will be called with argument if

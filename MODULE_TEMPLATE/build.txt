@@ -1,12 +1,12 @@
 author = KindredTheFox
-version = 0.2.4
+version = 1.0.0
 languageVersion = 6
-displayName = Twitch Chat Integrations Experimental
-homepage = https://forums.terraria.org/index.php?threads/twitch-chat-integration.81093/
+displayName = Twitch Chat Module Exapmle
+homepage =
 hideCode = false
 side = NoSync
 hideResources = true
 includeSource = false
 buildIgnore = *.csproj, *.user, obj\*, bin\*, .vs\*, MODULE_TEMPLATE\*, Properties\*, packages\*, .git\*
 includePDB = true
-dllReferences = System.Net.Http, Razorwing.Framework, Microsoft.Diagnostics.Runtime
+modReferences = TwitchChat

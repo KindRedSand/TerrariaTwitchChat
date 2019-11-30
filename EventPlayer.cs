@@ -8,7 +8,8 @@ namespace TwitchChat
     public class EventPlayer : ModPlayer
     {
         public static LunarSkies LunarSky = LunarSkies.None;
-        internal bool frameUpdated = false;
+
+        public bool Teleportationpotion;
 
         public override void UpdateBiomeVisuals() { }
 
@@ -16,9 +17,17 @@ namespace TwitchChat
         {
             EventWorld world = ModContent.GetInstance<EventWorld>();
 
+            if (Teleportationpotion)
+            {
+                Teleportationpotion = false;
+                player.TeleportationPotion();
+            }
+
             if (Main.netMode == 1)
-                if (world.CurrentEvent != null)
-                    world.CurrentEvent.PerformTick(world, (TwitchChat) mod);
+                world.CurrentEvent?.PerformTick(world, (TwitchChat) mod);
+
+
+                
         }
 
         public override void UpdateDead()
@@ -26,8 +35,10 @@ namespace TwitchChat
             EventWorld world = ModContent.GetInstance<EventWorld>();
 
             WorldEvent e = world.CurrentEvent;
-            if (e is ZergRushEvent)
-                e.TimeLeft -= 20;
+            if (e is ZergRushEvent && Main.rand.NextFloat() < 0.2f)
+                e.TimeLeft -= 1;
+
+
         }
 
 

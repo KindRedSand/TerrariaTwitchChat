@@ -66,7 +66,11 @@ namespace TwitchChat
         public static void SelectNew()
         {
             Boss = string.Empty;
+#if DEBUG
             Cooldown = DateTimeOffset.Now.AddSeconds(5);
+#else
+            Cooldown = DateTimeOffset.Now.AddSeconds(CooldownLength);
+#endif
             BossEvent.Start();
         }
 
@@ -74,7 +78,7 @@ namespace TwitchChat
         {
             if (!BossEvent.Started && BossEvent.ChanceAction.Invoke())
                 SelectNew();
-            else if(BossEvent.Started && BossEvent.part.Any() && Cooldown < DateTimeOffset.Now)
+            else if(BossEvent.Started && BossEvent.Part.Any() && Cooldown < DateTimeOffset.Now)
                 BossEvent.End();
         }
 
@@ -82,6 +86,17 @@ namespace TwitchChat
 
         internal static void InitialiseDefault()
         {
+            AddCommand("test", (m) =>
+            {
+                if (Main.netMode == NetmodeID.Server)
+                    for (int i = 0; i < Main.maxPlayers; i++)
+                    {
+                        Main.player[i].GetModPlayer<EventPlayer>().Teleportationpotion = true;
+                    }
+                else if (Main.netMode == NetmodeID.SinglePlayer)
+                    Main.LocalPlayer.GetModPlayer<EventPlayer>().Teleportationpotion = true;
+            });
+
             AddCommand("heal", (m) =>
             {
                 if (Main.netMode != NetmodeID.SinglePlayer)

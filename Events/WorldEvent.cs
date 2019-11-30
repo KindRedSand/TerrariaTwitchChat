@@ -122,7 +122,7 @@ namespace TwitchChat.Events
                 Main.invasionDelay = 0;
                 numPlayers = 0;
             }
-
+            
             OnEnd();
 
             if (Main.netMode == 2)

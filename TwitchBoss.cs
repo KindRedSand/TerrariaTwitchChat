@@ -86,16 +86,16 @@ namespace TwitchChat
 
         internal static void InitialiseDefault()
         {
-            AddCommand("test", (m) =>
-            {
-                if (Main.netMode == NetmodeID.Server)
-                    for (int i = 0; i < Main.maxPlayers; i++)
-                    {
-                        Main.player[i].GetModPlayer<EventPlayer>().Teleportationpotion = true;
-                    }
-                else if (Main.netMode == NetmodeID.SinglePlayer)
-                    Main.LocalPlayer.GetModPlayer<EventPlayer>().Teleportationpotion = true;
-            });
+            //AddCommand("test", (m) =>
+            //{
+            //    if (Main.netMode == NetmodeID.Server)
+            //        for (int i = 0; i < Main.maxPlayers; i++)
+            //        {
+            //            Main.player[i].GetModPlayer<EventPlayer>().Teleportationpotion = true;
+            //        }
+            //    else if (Main.netMode == NetmodeID.SinglePlayer)
+            //        Main.LocalPlayer.GetModPlayer<EventPlayer>().Teleportationpotion = true;
+            //});
 
             AddCommand("heal", (m) =>
             {

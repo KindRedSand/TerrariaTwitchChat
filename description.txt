@@ -3,30 +3,8 @@ This mod print text from stream in game chat
 [c/ff3937:Please, report ANY issues with mod in discord.]
 [c/ff3937:Things never get fixed if i don't know about it!]
 
-Switched back to WebClient from HttpClient since tML 0.11 breaks whole System.Net.Http branch with renaming the assembly
-Until it get fixed, emoticons will downloads way slower but will work in 0.11
+Now config can be changed using in game config menu, but config file still used to load mod!
 
-I also working on vanilla version of TwitchChat (Only chat). You can find download link in discord or use [c/98f6ef:xb7MxHu].
-
-Now with cached emoticons
-Note, mod no more only client side and marked as NoSync what mean mod still not disabling when joining server and also can be loaded at server without requiring clients haave what mod
-Server side Fun features can be synced if mod enabled in both client and server 
-Nothing happens on server if [c/98f6ef:EnableFun] = false
-
-After you install this mod enter any world and type 
-Windows only:
-  [c/98f6ef:/t settings] to open settings file or [c/98f6ef:/t open] to open config folder. 
-  Wait some time until OS ask you how to open .cfg file and use any text editor to edit fields
-
-Linux/MacOS:
-Or go to /ModLoader/Mods folder (In [c/d6791a:Mods] menu click [c/d6791a:Open Mods Folder]) Cache/Twitch/Twitch.ini and open it manually
-[c/98f6ef:/t open] can work too, but not guarated.
-
-[c/98f6ef:Channel] -> stream channel name starting with [c/98f6ef:#] and should be in LOWER CASE!
-Feel free just copy it from url:
-www.twitch.tv/[c/98f6ef:kindredthefox]
-
-[c/98f6ef:Username] -> Your username in twitch in lower case
 
 [c/98f6ef:OAToken] -> Your "password" what allow you enter the chat. Never paste here your own password
 Use only token what you get from https://twitchapps.com/tmi/ 
@@ -37,18 +15,22 @@ Also enables ignoring bot messages and your own messages (in case selfbotting).
 Enable it after you enshure what you see meessages from twitch.
 
 [c/98f6ef:EnableFun] Experimental implementation of [c/98f6ef:Twitch Plays Terraria]. 
-Still lack of content, but if you want create a content pack, dm me in discord [c/d6791a:KindRed-Sand#2340]
+Still lack of content, but if you want create a content pack use template from github or decompile example module mod or dm me in discord [c/d6791a:KindRed-Sand#2340]
 
-After this save all changes and type
+After changin anything in config save all changes and type
 [c/98f6ef:/t reload] to apply changes and force mod to reconnect
 
-All emoticons what your game was loaded, now stores on your disc at 
+All emoticons what your game was loaded stores on your disc at 
 /ModLoader/Mods/Cache/Twitch/emoticons
 
-Also, each emote loaded from twitch chat can be reused using \[e:EmoteAlias] tag
+Also each emote loaded from twitch chat can be reused using \[e:EmoteAlias] tag
 
 You can also send messages in chat using
 [c/98f6ef:/t m Your Text Here]
+
+0.3.0 Update:
+  Major code redesign
+  Created external modules. Note: WorldEvent and VoteEvent can be loaded from ANY world so if you are mod creator you also can add event based on your mod!
 
 0.2.4 Update:
 

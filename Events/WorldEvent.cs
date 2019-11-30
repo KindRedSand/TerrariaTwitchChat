@@ -37,7 +37,7 @@ namespace TwitchChat.Events
                 Main.NewText(Language.GetTextValue(LanguageManager.Instance.GetTextValue(StartString)), StartColor);
             }
 
-            Post(Language.GetTextValue(LanguageManager.Instance.GetTextValue(StartString)), StartColor);
+            //Post(Language.GetTextValue(LanguageManager.Instance.GetTextValue(StartString)), StartColor);
 
             started = true;
             TimeLeft = Length;

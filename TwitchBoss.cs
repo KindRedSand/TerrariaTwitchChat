@@ -58,8 +58,8 @@ namespace TwitchChat
             var cmd = (from x in Commands where m.Message.ToLower().StartsWith(x.Key) select x.Value).ToArray();//Make it ToArray() to calm down ReSharper
             if (!cmd.Any())
                 return false;
-            Cooldown = DateTimeOffset.Now.AddSeconds(CooldownLength);
             cmd.First().Invoke(m);
+            Cooldown = DateTimeOffset.Now.AddSeconds(CooldownLength);
             return true;
         }
 
@@ -135,14 +135,14 @@ namespace TwitchChat
                     {
                         if (!it.active)
                             continue;
-                        for (var i = Rand.Next(20); i > 0; i--)
+                        for (var i = Rand.Next(3); i > 0; i--)
                             Projectile.NewProjectile(it.position, new Vector2(0, 3), ProjectileID.EyeFire,
-                                400, 0);
+                                20, 0);
                     }
                 else
-                    for (var i = Rand.Next(20); i > 0; i--)
+                    for (var i = Rand.Next(3); i > 0; i--)
                         Projectile.NewProjectile(Main.LocalPlayer.position, new Vector2(0, 3),
-                            ProjectileID.EyeFire, 400, 0);
+                            ProjectileID.EyeFire, 20, 0);
             });
 
             AddCommand("quit", (m) =>

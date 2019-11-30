@@ -1,12 +1,5 @@
 ﻿#region usings
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Reflection;
-using System.Threading;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using On.Terraria;
@@ -14,6 +7,13 @@ using Razorwing.Framework.Configuration;
 using Razorwing.Framework.IO.Stores;
 using Razorwing.Framework.Platform;
 using Razorwing.Framework.Threading;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Reflection;
+using System.Threading;
 using Terraria.Enums;
 using Terraria.ID;
 using Terraria.Localization;
@@ -26,11 +26,8 @@ using TwitchChat.IRCClient;
 using TwitchChat.Overrides;
 using TwitchChat.Overrides.Razorwing;
 using TwitchChat.Overrides.Razorwing.Timing;
-using Item = Terraria.Item;
 using Main = Terraria.Main;
 using NetMessage = Terraria.NetMessage;
-using Player = Terraria.Player;
-using Projectile = Terraria.Projectile;
 
 #endregion
 

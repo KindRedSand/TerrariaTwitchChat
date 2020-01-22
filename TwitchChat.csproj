@@ -12,10 +12,13 @@
   </Target>
   <ItemGroup>
     <Compile Remove="lib\**" />
+    <Compile Remove="MODULE_TEMPLATE\**" />
     <Compile Remove="packages\**" />
     <EmbeddedResource Remove="lib\**" />
+    <EmbeddedResource Remove="MODULE_TEMPLATE\**" />
     <EmbeddedResource Remove="packages\**" />
     <None Remove="lib\**" />
+    <None Remove="MODULE_TEMPLATE\**" />
     <None Remove="packages\**" />
   </ItemGroup>
   <ItemGroup>

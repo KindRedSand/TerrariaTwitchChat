@@ -1,0 +1,11 @@
+
+Random items giveaway
+
+Random vote pools
+{
+	Reforge random stuff
+	Give items based on game stage
+	Disable wings (Hardmode only)
+	Trigger random moon events (Blood for pre hardmode and Pimpkin/Frost for post mechanical)
+	
+}

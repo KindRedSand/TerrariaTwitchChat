@@ -47,7 +47,7 @@ namespace TwitchChat
         public static readonly string Path;
 
         internal static int[] ShadowNpc = new int[256];
-        private readonly UnifiedRandom rand = new UnifiedRandom();
+        //private readonly UnifiedRandom rand = new UnifiedRandom();
         public Dictionary<string, Action> BossCommands = new Dictionary<string, Action>();
 
         //private DateTimeOffset bossCooldown = DateTimeOffset.Now;
@@ -407,7 +407,7 @@ namespace TwitchChat
                 return TownNPCSpawnResult.Blocked;
 
             TownNPCSpawnResult v = orig?.Invoke(x, y) ?? TownNPCSpawnResult.Blocked;
-            if (v != TownNPCSpawnResult.Successful)
+            if (v != TownNPCSpawnResult.Successful || RecentChatters.Count == 0)
                 return v;
 
             //if game actually spawn new town npc
@@ -415,7 +415,11 @@ namespace TwitchChat
             var r = new WeightedRandom<string>();
             IEnumerable<string> l = RecentChatters.Except(w.UsedNicks);
 
-            foreach (var it in l)
+            string[] list = l as string[] ?? l.ToArray();
+            if (!list.Any())
+                return v;
+
+            foreach (var it in list)
                 r.Add(it);
 
             //Then select random nick
@@ -426,7 +430,7 @@ namespace TwitchChat
 
             //Go through shadow array
             for (var i = 0; i < Main.maxNPCs; i++)
-                //If this is active town npc and has different typeID what this slot has before
+                //If this is active town npc and has different typeID what this slot has before 
                 if (Main.npc[i].active && Main.npc[i].townNPC && ShadowNpc[i] != Main.npc[i].type)
                 {
                     //Post a message

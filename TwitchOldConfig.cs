@@ -193,6 +193,11 @@ namespace TwitchChat
             }
         }
 
+        [Label("NPC's renaming to twitch chatters")]
+        [Tooltip("Renames NPC's to a random nick from chat.")]
+        [DefaultValue(true)]
+        public bool RenameNPC { get; set; }
+
         [Label("Enable Fun (Twitch Plays Terraria)")]
         [Tooltip("Enables experimental features.")]
         [DefaultValue(false)]

@@ -28,9 +28,12 @@ Also each emote loaded from twitch chat can be reused using \[e:EmoteAlias] tag
 You can also send messages in chat using
 [c/98f6ef:/t m Your Text Here]
 
-0.3.0 Update:
+0.3.2 Update:
   Major code redesign
   Created external modules. Note: WorldEvent and VoteEvent can be loaded from ANY world so if you are mod creator you also can add event based on your mod!
+  .2:
+  Possible fix for crashing when saving world
+  Now town NPC renaming can be disabled in config
 
 0.2.4 Update:
 

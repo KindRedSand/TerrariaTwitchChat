@@ -407,7 +407,7 @@ namespace TwitchChat
                 return TownNPCSpawnResult.Blocked;
 
             TownNPCSpawnResult v = orig?.Invoke(x, y) ?? TownNPCSpawnResult.Blocked;
-            if (v != TownNPCSpawnResult.Successful || RecentChatters.Count == 0)
+            if (!ModContent.GetInstance<TwitchConfig>().RenameNPC || v != TownNPCSpawnResult.Successful || RecentChatters.Count == 0)
                 return v;
 
             //if game actually spawn new town npc

@@ -1,5 +1,5 @@
 author = KindredTheFox
-version = 0.3.1
+version = 0.3.2
 languageVersion = 6
 displayName = Twitch Chat Code Redesign Update
 homepage = https://forums.terraria.org/index.php?threads/twitch-chat-integration.81093/
